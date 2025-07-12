@@ -21,10 +21,9 @@ def index():
         company_email = request.form.get('company_email', '')
         
         cur.execute("""
-            INSERT INTO company_settings (setting_key, setting_value) 
-            VALUES ('company_name', %s), ('company_address', %s), ('company_phone', %s), ('company_email', %s)
-            ON CONFLICT (setting_key) 
-            DO UPDATE SET setting_value = EXCLUDED.setting_value
+            UPDATE company_settings
+            SET company_name = %s, address = %s, phone = %s, email = %s
+            WHERE setting_id = 1
         """, (company_name, company_address, company_phone, company_email))
         
         conn.commit()
@@ -32,10 +31,19 @@ def index():
         return redirect(url_for('settings.index'))
     
     # Get current settings
-    cur.execute("SELECT setting_key, setting_value FROM company_settings")
-    settings = {row['setting_key']: row['setting_value'] for row in cur.fetchall()}
+    cur.execute("SELECT * FROM company_settings LIMIT 1")
+    row = cur.fetchone()
+    settings = dict(row) if row else {}
     
     cur.close()
     conn.close()
     
-    return render_template('settings.html', settings=settings)
+    # Get user info from session or settings
+    user_name = session.get('user_name') or settings.get('company_name', '')
+    user_email = session.get('user_email') or settings.get('email', '')
+    user_phone = session.get('user_phone') or settings.get('phone', '')
+    user_role = session.get('role') or ''
+    notifications = False  # Set to True if you have notification logic
+    editable_role = user_role == 'Admin'
+    
+    return render_template('settings.html', settings=settings, user_name=user_name, user_email=user_email, user_phone=user_phone, user_role=user_role, notifications=notifications, editable_role=editable_role)

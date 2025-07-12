@@ -36,12 +36,12 @@
           <td style="background:#fff;padding:16px 18px;">{{ req.team or '-' }}</td>
           <td style="background:#fff;padding:16px 18px;">
             <div style="display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;justify-content:center;">
-              <form action="{{ url_for('approve_request', request_id=req.request_id) }}" method="post">
+              <form action="{{ url_for('users.approve_request', request_id=req.request_id) }}" method="post">
                 <button type="submit" style="white-space:nowrap;background:#51cf66;color:#fff;font-weight:600;padding:6px 14px;border-radius:8px;border:none;font-size:0.95rem;">
                   <i class="fas fa-check"></i> Approve
                 </button>
               </form>
-              <form action="{{ url_for('reject_request', request_id=req.request_id) }}" method="post">
+              <form action="{{ url_for('users.reject_request', request_id=req.request_id) }}" method="post">
                 <button type="submit" style="white-space:nowrap;background:#fa5252;color:#fff;font-weight:600;padding:6px 14px;border-radius:8px;border:none;font-size:0.95rem;">
                   <i class="fas fa-times"></i> Reject
                 </button>
@@ -91,14 +91,14 @@
             <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
                 
                 <!-- View Button -->
-                <a href="{{ url_for('user_details', user_id=user.user_id) }}" title="Details"
+                <a href="{{ url_for('users.details', user_id=user.user_id) }}" title="Details"
                 style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
                         background:#edf2fb;color:#4361ee;border-radius:8px;">
                 <i class="fas fa-eye"></i>
                 </a>
 
                 <!-- Edit Button -->
-                <a href="{{ url_for('edit_user', user_id=user.user_id) }}" title="Edit"
+                <a href="{{ url_for('users.edit', user_id=user.user_id) }}" title="Edit"
                 style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
                         background:#ffd60a;color:#22223b;border-radius:8px;">
                 <i class="fas fa-pen"></i>
@@ -106,7 +106,7 @@
 
                 <!-- Conditional Button -->
                 {% if user.role != "Admin" %}
-                <form action="{{ url_for('remove_user', user_id=user.user_id) }}" method="post"
+                <form action="{{ url_for('users.remove', user_id=user.user_id) }}" method="post"
                         onsubmit="return confirm('Are you sure you want to remove this user?');"
                         style="display:inline;">
                     <button type="submit" title="Remove"

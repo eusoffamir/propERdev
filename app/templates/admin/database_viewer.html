@@ -2,14 +2,25 @@
 
 {% block title %}Database Viewer{% endblock %}
 
-{% block content %}
+{% block page_header %}
+<div style="margin-bottom: 2.4rem;">
+    <div style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.25rem;">
+        Database Viewer
+    </div>
+    <div style="font-size: 1.06rem; color: #7e8a97;">
+        Browse and export database tables. Admin access only.
+    </div>
+</div>
+{% endblock %}
+
+{% block main_content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
-                        <i class="fas fa-database"></i> Database Viewer
+                        <i class="fas fa-database"></i> Available Tables
                     </h3>
                     <div class="card-tools">
                         <span class="badge badge-info">{{ tables|length }} Tables</span>

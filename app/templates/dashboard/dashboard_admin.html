@@ -50,7 +50,9 @@
     {% if user_role in ['Admin', 'Leader'] %}
     <a href="{{ url_for('users.register') }}" class="action-btn btn-success"><i class="fas fa-user-plus"></i> Add User</a>
     {% endif %}
+    {% if user_role == 'Admin' %}
     <a href="{{ url_for('admin.index') }}" class="action-btn btn-warning"><i class="fas fa-database"></i> Database Viewer</a>
+    {% endif %}
 </div>
 
 <!-- PERFORMANCE CHART -->

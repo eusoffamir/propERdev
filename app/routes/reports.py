@@ -65,6 +65,10 @@ def index():
         })
     monthly_data.reverse()
 
+    # Always provide chart_labels and chart_amounts for the chart
+    chart_labels = [m['month'] for m in monthly_data] if monthly_data else []
+    chart_amounts = [m['revenue'] for m in monthly_data] if monthly_data else []
+
     cur.close()
     conn.close()
 
@@ -75,6 +79,8 @@ def index():
                          total_cases=total_cases,
                          avg_case_value=avg_case_value,
                          monthly_data=monthly_data,
+                         chart_labels=chart_labels,
+                         chart_amounts=chart_amounts,
                          user_role=user_role)
 
 @reports_bp.route('/reports/download')

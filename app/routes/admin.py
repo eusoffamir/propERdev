@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request, jsonify, current_app, session, redirect, url_for, flash
 from sqlalchemy import text, inspect
 from app.models import *
 from app.db import db
@@ -7,27 +6,35 @@ import pandas as pd
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+def admin_required(f):
+    """Decorator to require admin role"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        if session.get('role') not in ['Admin', 'admin']:
+            flash('You do not have permission to access this page.', 'error')
+            return redirect(url_for('dashboard.index'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 @admin_bp.route('/')
-@login_required
+@admin_required
 def index():
-    print("DEBUG: User:", getattr(current_user, 'email', None), "is_admin:", getattr(current_user, 'is_admin', None))
     """Admin dashboard with database viewer"""
-    if not current_user.is_admin:
-        return "Access denied", 403
-    
     # Get all table names
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    
-    return render_template('admin/database_viewer.html', tables=tables)
+    return render_template('admin/database_viewer.html', tables=tables, user_role=session.get('role'), user_name=session.get('user_name'))
 
 @admin_bp.route('/table/<table_name>')
-@login_required
+@admin_required
 def view_table(table_name):
     """View data from a specific table"""
-    if not current_user.is_admin:
-        return "Access denied", 403
-    
     try:
         # Get table data with pagination
         page = request.args.get('page', 1, type=int)
@@ -56,18 +63,18 @@ def view_table(table_name):
                              page=page,
                              per_page=per_page,
                              total_count=total_count,
-                             table_info=table_info)
+                             table_info=table_info,
+                             user_role=session.get('role'),
+                             user_name=session.get('user_name'),
+                             min=min)
     
     except Exception as e:
         return f"Error viewing table: {str(e)}", 500
 
 @admin_bp.route('/api/table/<table_name>')
-@login_required
+@admin_required
 def api_table_data(table_name):
     """API endpoint for table data (for AJAX requests)"""
-    if not current_user.is_admin:
-        return jsonify({"error": "Access denied"}), 403
-    
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 50, type=int)
@@ -93,12 +100,9 @@ def api_table_data(table_name):
         return jsonify({"error": str(e)}), 500
 
 @admin_bp.route('/export/<table_name>')
-@login_required
+@admin_required
 def export_table(table_name):
     """Export table data to CSV"""
-    if not current_user.is_admin:
-        return "Access denied", 403
-    
     try:
         query = text(f"SELECT * FROM {table_name}")
         result = db.session.execute(query)

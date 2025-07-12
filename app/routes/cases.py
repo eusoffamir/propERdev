@@ -41,7 +41,7 @@ def index():
     cur.close()
     conn.close()
 
-    return render_template('cases/cases.html', cases=cases, user_role=user_role)
+    return render_template('cases/cases.html', cases=cases, user_role=user_role, user_name=session.get('user_name'))
 
 @cases_bp.route('/add_case', methods=['GET', 'POST'])
 @login_required
