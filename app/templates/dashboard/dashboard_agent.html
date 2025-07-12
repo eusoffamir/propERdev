@@ -52,16 +52,16 @@
     <div class="section-title" style="margin-bottom:0.9rem;">Your Recent Cases</div>
     <ul class="case-list" style="list-style:none;padding:0;">
         {% for case in user_cases[:6] %}
-        <li class="case-item" style="padding:20px 0;border-bottom:1px solid #f1f1f1;display:flex;justify-content:space-between;align-items:center;">
+        <li class="case-item" style="background:#fff;border-radius:14px;box-shadow:0 2px 12px #4361ee11;padding:24px 28px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;transition:box-shadow 0.2s;">
             <div class="case-info">
-                <h4 style="margin-bottom:0;font-size:1.11rem;font-weight:700;">{{ case.client_name }}
+                <h4 style="margin-bottom:0;font-size:1.18rem;font-weight:800;letter-spacing:0.01em;">{{ case.client_name }}
                     <span style="font-size:13px;color:#aaa;font-weight:400;">({{ case.date_created[:16] }})</span>
                 </h4>
-                <div style="margin-top:3px;font-size:0.98rem;">RM {{ case.total_amount|int }}</div>
+                <div style="margin-top:6px;font-size:1.08rem;font-weight:600;color:#22b573;">RM {{ case.total_amount|int }}</div>
             </div>
-            <div class="case-actions" style="display:flex;gap:10px;">
-                <a href="{{ url_for('generate_invoice', case_id=case.case_id) }}" class="btn btn-info">Invoice</a>
-                <a href="{{ url_for('generate_receipt', case_id=case.case_id) }}" class="btn btn-primary">Receipt</a>
+            <div class="case-actions" style="display:flex;gap:12px;">
+                <a href="{{ url_for('cases.generate_invoice_pdf', case_id=case.case_id) }}" class="btn btn-info" style="display:flex;align-items:center;gap:6px;padding:10px 20px;font-weight:600;border-radius:8px;box-shadow:0 1px 4px #4361ee22;transition:background 0.2s;"><i class="fas fa-file-invoice"></i> Invoice</a>
+                <a href="{{ url_for('cases.generate_receipt_pdf', case_id=case.case_id) }}" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;padding:10px 20px;font-weight:600;border-radius:8px;box-shadow:0 1px 4px #4361ee22;transition:background 0.2s;"><i class="fas fa-receipt"></i> Receipt</a>
             </div>
         </li>
         {% endfor %}

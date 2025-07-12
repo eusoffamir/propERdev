@@ -7,7 +7,7 @@ class Case(BaseModel):
     __tablename__ = 'cases'
 
     case_id = db.Column(db.Integer, primary_key=True)
-    client_id = db.Column(db.Integer, db.ForeignKey('clients.client_id'))
+    client_name = db.Column(db.String(255))
     agent_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     leader_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
 
@@ -40,6 +40,5 @@ class Case(BaseModel):
     case_status = db.Column(db.String(50))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    client = db.relationship("Client")
     agent = db.relationship("User", foreign_keys=[agent_id])
     leader = db.relationship("User", foreign_keys=[leader_id])

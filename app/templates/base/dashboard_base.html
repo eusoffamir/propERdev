@@ -70,7 +70,7 @@
                             <a href="{{ url_for('users.pending_requests') }}" class="pending-req-btn"><i class="fas fa-user-clock"></i> Pending Requests</a>
                         {% endif %}
                         <a href="{{ url_for('settings.index') }}" title="Profile Settings">
-                            <img src="{{ url_for('static', filename='default-avatar.jpg') }}" alt="User" class="profile-pic" style="cursor:pointer;">
+                            <img src="{{ avatar_url }}" alt="User" class="profile-pic" style="cursor:pointer;width:160px;height:160px;border-radius:50%;object-fit:cover;box-shadow:0 2px 10px #4361ee22;">
                         </a>
                         <a href="{{ url_for('auth.logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>

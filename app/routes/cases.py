@@ -67,7 +67,21 @@ def add():
         flash('Case added successfully!', 'success')
         return redirect(url_for('cases.index'))
 
-    return render_template('cases/add_case.html')
+    # Auto-fill agent and leader name for GET
+    agent_name = session.get('user_name', '')
+    team = session.get('team', None)
+    leader_name = ''
+    if team:
+        conn = get_db()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute("SELECT name FROM users WHERE team = %s AND role = 'Leader' LIMIT 1", (team,))
+        row = cur.fetchone()
+        if row:
+            leader_name = row['name']
+        cur.close()
+        conn.close()
+
+    return render_template('cases/add_case.html', agent_name=agent_name, leader_name=leader_name)
 
 @cases_bp.route('/cases/<int:case_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -77,20 +91,103 @@ def edit(case_id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     if request.method == 'POST':
-        client_name = request.form['client_name']
-        case_details = request.form['case_details']
-        total_amount = request.form.get('total_amount', 0)
-        status = request.form.get('status', 'Active')
+        # Fetch all fields from the form
+        client_name = request.form.get('client_name')
+        case_no = request.form.get('case_no')
+        invoice_no = request.form.get('invoice_no')
+        eform_id = request.form.get('eform_id')
+        property_address = request.form.get('property_address')
+        
+        # Handle numeric fields properly
+        def safe_float(value):
+            if value == 'None' or value == '' or value is None:
+                return None
+            try:
+                return float(value) if value else None
+            except (ValueError, TypeError):
+                return None
+        
+        purchase_price = safe_float(request.form.get('purchase_price'))
+        fee_pct = safe_float(request.form.get('fee_pct'))
+        commission_pct = safe_float(request.form.get('commission_pct'))
+        commission_total = safe_float(request.form.get('commission_total'))
+        override_leader_amt = safe_float(request.form.get('override_leader_amt'))
+        override_hoa_amt = safe_float(request.form.get('override_hoa_amt'))
+        profit_proper = safe_float(request.form.get('profit_proper'))
+        ed_paid = safe_float(request.form.get('ed_paid'))
+        ed_pending = request.form.get('ed_pending')
+        tax = safe_float(request.form.get('tax'))
+        total_amount = safe_float(request.form.get('total_amount'))
+        
+        reference_no = request.form.get('reference_no')
+        registration_no = request.form.get('registration_no')
+        mode_of_payment = request.form.get('mode_of_payment')
+        in_part_payment_of = request.form.get('in_part_payment_of')
+        description = request.form.get('description')
+        case_details = request.form.get('case_details')
+        payment_status = request.form.get('payment_status')
+        case_status = request.form.get('case_status', 'Active')
+        
+        # Handle integer fields properly
+        agent_id = request.form.get('agent_id')
+        if agent_id == 'None' or agent_id == '':
+            agent_id = None
+        else:
+            try:
+                agent_id = int(agent_id) if agent_id else None
+            except (ValueError, TypeError):
+                agent_id = None
+                
+        leader_id = request.form.get('leader_id')
+        if leader_id == 'None' or leader_id == '':
+            leader_id = None
+        else:
+            try:
+                leader_id = int(leader_id) if leader_id else None
+            except (ValueError, TypeError):
+                leader_id = None
+                
+        number = request.form.get('number')
 
         cur.execute("""
             UPDATE cases SET
-                client_name = %s, case_details = %s, total_amount = %s, status = %s
+                number = %s,
+                client_name = %s,
+                agent_id = %s,
+                leader_id = %s,
+                case_no = %s,
+                invoice_no = %s,
+                eform_id = %s,
+                property_address = %s,
+                purchase_price = %s,
+                fee_pct = %s,
+                commission_pct = %s,
+                commission_total = %s,
+                override_leader_amt = %s,
+                override_hoa_amt = %s,
+                profit_proper = %s,
+                ed_paid = %s,
+                ed_pending = %s,
+                tax = %s,
+                total_amount = %s,
+                reference_no = %s,
+                registration_no = %s,
+                mode_of_payment = %s,
+                in_part_payment_of = %s,
+                description = %s,
+                case_details = %s,
+                payment_status = %s,
+                case_status = %s
             WHERE case_id = %s
-        """, (client_name, case_details, total_amount, status, case_id))
+        """, (
+            number, client_name, agent_id, leader_id, case_no, invoice_no, eform_id, property_address,
+            purchase_price, fee_pct, commission_pct, commission_total, override_leader_amt, override_hoa_amt, profit_proper,
+            ed_paid, ed_pending, tax, total_amount, reference_no, registration_no, mode_of_payment, in_part_payment_of,
+            description, case_details, payment_status, case_status, case_id
+        ))
         conn.commit()
         cur.close()
         conn.close()
-        
         flash('Case updated successfully!', 'success')
         return redirect(url_for('cases.index'))
 

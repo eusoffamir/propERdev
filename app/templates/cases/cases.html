@@ -64,7 +64,11 @@
             {% for case in cases %}
             <tr class="case-row" style="border-bottom:1.2px solid #e9eefa;">
                 <td style="padding:10px 14px;font-weight:700;color:#888;">{{ case.number }}</td>
-                <td style="padding:10px 14px;">{{ case.case_no }}</td>
+                <td style="padding:10px 14px;">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ case.case_id }}" style="color:#222;text-decoration:underline;cursor:pointer;">
+                        {{ case.case_no }}
+                    </a>
+                </td>
                 <td style="padding:10px 14px;">{{ case.description }}</td>
                 <td style="padding:10px 14px;">
                     {% if case.case_status == 'SUBMIT' %}
@@ -112,56 +116,53 @@
     {% for case in cases %}
     <!-- View Modal -->
     <div class="modal fade" id="viewModal{{ case.case_id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg" style="max-width: 960px;">
+    <div class="modal-dialog modal-lg" style="max-width: 600px;">
         <div class="modal-content" style="border-radius: 18px;">
         <div class="modal-header">
             <h5 class="modal-title" style="font-size: 2.2rem; font-weight: 800; color: #4361ee;"><i class="fas fa-file-alt"></i> View Case</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" style="padding: 48px 50px; background: #f7f8fd; font-family: 'Poppins', Arial, sans-serif;">
+        <div class="modal-body" style="padding: 36px 36px; background: #f7f8fd; font-family: 'Poppins', Arial, sans-serif;">
             <div class="case-grid">
-
-                <!-- 🔹 SECTION: DETAILS -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee;">📝 Case Details</h4>
-                {% for field in ['number', 'case_no', 'invoice_no', 'eform_id', 'agent_id', 'leader_id', 'agent_name', 'leader_name', 'client_name', 'property_address', 'description', 'case_details'] %}
+                <!-- Main fields -->
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Case No</label>
+                    <input class="field-box" type="text" value="{{ case.case_no }}" readonly>
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 SECTION: INVOICE -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee; margin-top: 24px;">🧾 Invoice Info</h4>
-                {% for field in ['purchase_price', 'amount', 'fee_pct', 'commission_pct', 'commission_total', 'override_leader_amt', 'override_hoa_amt', 'profit_proper', 'ed_amount', 'ed_paid', 'ed_pending', 'tax', 'total_amount'] %}
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Client Name</label>
+                    <input class="field-box" type="text" value="{{ case.client_name }}" readonly>
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 SECTION: RECEIPT -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee; margin-top: 24px;">📄 Receipt Info</h4>
-                {% for field in ['reference_no', 'registration_no', 'mode_of_payment', 'in_part_payment_of', 'date_created', 'payment_status'] %}
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Description</label>
+                    <input class="field-box" type="text" value="{{ case.description }}" readonly>
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 Case Status Dropdown -->
                 <div class="field-group">
-                <label class="field-label">Case Status</label>
-                <select class="field-box" name="case_status">
-                    {% for option in ['SUBMIT', 'IN PROGRESS', 'SETTLE', 'KIV', 'CANCEL'] %}
-                    <option value="{{ option }}" {% if case.case_status == option %}selected{% endif %}>{{ option }}</option>
+                    <label class="field-label">Status</label>
+                    <input class="field-box" type="text" value="{{ case.case_status }}" readonly>
+                </div>
+            </div>
+            <div id="viewMoreFields{{ case.case_id }}" style="display:none;">
+                <div class="case-grid" style="margin-top:24px;">
+                    <!-- Advanced/rarely used fields, only show if value is not None/empty -->
+                    {% for field in ['number', 'invoice_no', 'eform_id', 'agent_id', 'leader_id', 'agent_name', 'leader_name', 'property_address', 'case_details',
+                        'purchase_price', 'amount', 'fee_pct', 'commission_pct', 'commission_total', 'override_leader_amt', 'override_hoa_amt', 'profit_proper', 'ed_amount', 'ed_paid', 'ed_pending', 'tax', 'total_amount',
+                        'reference_no', 'registration_no', 'mode_of_payment', 'in_part_payment_of', 'date_created', 'payment_status'] %}
+                        {% if case[field] and case[field] != 'None' %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" value="{{ case[field] }}" readonly>
+                        </div>
+                        {% endif %}
                     {% endfor %}
-                </select>
                 </div>
-
+            </div>
+            <div style="text-align:center;margin-top:18px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="viewToggleBtn{{ case.case_id }}" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#2563eb;color:#222;border:none;box-shadow:0 2px 8px #2563eb22;" onclick="var more=document.getElementById('viewMoreFields{{ case.case_id }}'); var btn=document.getElementById('viewToggleBtn{{ case.case_id }}'); if(more.style.display==='none'){more.style.display='block';btn.innerHTML='Show Less <span style=\'font-size:1.1em;color:#fff;\'>&#9650;</span>';}else{more.style.display='none';btn.innerHTML='Show More <span style=\'font-size:1.1em;color:#fff;\'>&#9660;</span>';}">Show More <span style="font-size:1.1em;color:#fff;">&#9660;</span></button>
             </div>
         </div>
         <div class="modal-footer" style="padding: 16px 24px;">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" type="button" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#editModal{{ case.case_id }}">Edit</button>
         </div>
         </div>
     </div>
@@ -169,57 +170,98 @@
 
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal{{ case.case_id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg" style="max-width: 960px;">
+    <div class="modal-dialog modal-lg" style="max-width: 600px;">
         <form class="modal-content" action="{{ url_for('cases.edit', case_id=case.case_id) }}" method="post" style="border-radius: 18px;">
         <div class="modal-header">
             <h5 class="modal-title" style="font-size: 2.2rem; font-weight: 800; color: #4361ee;"><i class="fas fa-edit"></i> Edit Case</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-                <div class="modal-body" style="padding: 48px 50px; background: #f7f8fd; font-family: 'Poppins', Arial, sans-serif;">
+        <div class="modal-body" style="padding: 36px 36px; background: #f7f8fd; font-family: 'Poppins', Arial, sans-serif;">
             <div class="case-grid">
-
-                <!-- 🔹 SECTION: DETAILS -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee;">📝 Case Details</h4>
-                {% for field in ['number', 'case_no', 'invoice_no', 'eform_id', 'agent_id', 'leader_id', 'agent_name', 'leader_name', 'client_name', 'property_address', 'description', 'case_details'] %}
+                <!-- Main fields -->
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Number</label>
+                    <input class="field-box" type="text" name="number" value="{{ case.number }}">
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 SECTION: INVOICE -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee; margin-top: 24px;">🧾 Invoice Info</h4>
-                {% for field in ['purchase_price', 'amount', 'fee_pct', 'commission_pct', 'commission_total', 'override_leader_amt', 'override_hoa_amt', 'profit_proper', 'ed_amount', 'ed_paid', 'ed_pending', 'tax', 'total_amount'] %}
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Case No</label>
+                    <input class="field-box" type="text" name="case_no" value="{{ case.case_no }}">
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 SECTION: RECEIPT -->
-                <h4 style="grid-column: span 2; font-weight: bold; color: #4361ee; margin-top: 24px;">📄 Receipt Info</h4>
-                {% for field in ['reference_no', 'registration_no', 'mode_of_payment', 'in_part_payment_of', 'date_created', 'payment_status'] %}
                 <div class="field-group">
-                    <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
-                    <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                    <label class="field-label">Client Name</label>
+                    <input class="field-box" type="text" name="client_name" value="{{ case.client_name }}">
                 </div>
-                {% endfor %}
-
-                <!-- 🔹 Case Status Dropdown -->
                 <div class="field-group">
-                <label class="field-label">Case Status</label>
-                <select class="field-box" name="case_status">
-                    {% for option in ['SUBMIT', 'IN PROGRESS', 'SETTLE', 'KIV', 'CANCEL'] %}
-                    <option value="{{ option }}" {% if case.case_status == option %}selected{% endif %}>{{ option }}</option>
+                    <label class="field-label">Description</label>
+                    <input class="field-box" type="text" name="description" value="{{ case.description }}">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Status</label>
+                    <select class="field-box" name="case_status">
+                        <option value="" {% if not case.case_status %}selected{% endif %}></option>
+                        <option value="SUBMIT" {% if case.case_status == 'SUBMIT' %}selected{% endif %}>SUBMIT</option>
+                        <option value="IN PROGRESS" {% if case.case_status == 'IN PROGRESS' %}selected{% endif %}>IN PROGRESS</option>
+                        <option value="SETTLE" {% if case.case_status == 'SETTLE' %}selected{% endif %}>SETTLE</option>
+                        <option value="KIV" {% if case.case_status == 'KIV' %}selected{% endif %}>KIV</option>
+                        <option value="CANCEL" {% if case.case_status == 'CANCEL' %}selected{% endif %}>CANCEL</option>
+                    </select>
+                </div>
+            </div>
+            <div id="editMoreFields{{ case.case_id }}" style="display:none;">
+                <div class="case-grid" style="margin-top:24px;">
+                    <!-- Parties -->
+                    <div style="grid-column:1/-1;background:#f6f8fc;padding:10px 18px 6px 18px;border-radius:8px 8px 0 0;margin-bottom:8px;font-weight:700;color:#4361ee;">Parties</div>
+                    {% for field in ['agent_id', 'leader_id', 'agent_name', 'leader_name', 'client_name'] %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                        </div>
                     {% endfor %}
-                </select>
-                </div>
 
+                    <!-- Property -->
+                    <div style="grid-column:1/-1;background:#f6f8fc;padding:10px 18px 6px 18px;border-radius:8px;margin:18px 0 8px 0;font-weight:700;color:#4361ee;">Property</div>
+                    {% for field in ['property_address', 'case_details'] %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                        </div>
+                    {% endfor %}
+
+                    <!-- Financial -->
+                    <div style="grid-column:1/-1;background:#f6f8fc;padding:10px 18px 6px 18px;border-radius:8px;margin:18px 0 8px 0;font-weight:700;color:#4361ee;">Financial</div>
+                    {% for field in ['purchase_price', 'amount', 'fee_pct', 'commission_pct', 'commission_total', 'override_leader_amt', 'override_hoa_amt', 'profit_proper', 'ed_amount', 'ed_paid', 'ed_pending', 'tax', 'total_amount'] %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                        </div>
+                    {% endfor %}
+
+                    <!-- Dates & Status -->
+                    <div style="grid-column:1/-1;background:#f6f8fc;padding:10px 18px 6px 18px;border-radius:8px;margin:18px 0 8px 0;font-weight:700;color:#4361ee;">Dates & Status</div>
+                    {% for field in ['date_created', 'payment_status'] %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                        </div>
+                    {% endfor %}
+
+                    <!-- Other -->
+                    <div style="grid-column:1/-1;background:#f6f8fc;padding:10px 18px 6px 18px;border-radius:8px;margin:18px 0 8px 0;font-weight:700;color:#4361ee;">Other</div>
+                    {% for field in ['invoice_no', 'eform_id', 'reference_no', 'registration_no', 'mode_of_payment', 'in_part_payment_of'] %}
+                        <div class="field-group">
+                            <label class="field-label">{{ field.replace('_', ' ') | title }}</label>
+                            <input class="field-box" type="text" name="{{ field }}" value="{{ case[field] }}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div style="text-align:center;margin-top:18px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="editToggleBtn{{ case.case_id }}" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#2563eb;color:#222;border:none;box-shadow:0 2px 8px #2563eb22;" onclick="var more=document.getElementById('editMoreFields{{ case.case_id }}'); var btn=document.getElementById('editToggleBtn{{ case.case_id }}'); if(more.style.display==='none'){more.style.display='block';btn.innerHTML='Show Less <span style=\'font-size:1.1em;color:#fff;\'>&#9650;</span>';}else{more.style.display='none';btn.innerHTML='Show More <span style=\'font-size:1.1em;color:#fff;\'>&#9660;</span>';}">Show More <span style="font-size:1.1em;color:#fff;">&#9660;</span></button>
             </div>
         </div>
         <div class="modal-footer" style="padding: 16px 24px;">
-            <button class="btn btn-primary" type="submit">Save</button>
-            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
         </div>
         </form>
     </div>
