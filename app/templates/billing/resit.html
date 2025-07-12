@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Official Receipt</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; font-size: 11px; }
+        p { line-height: 1.5; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 4px; }
+        th { background-color: #f2f2f2; text-align: center; }
+        td { vertical-align: top; }
+        .signature { margin-top: 30px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 20px;">
+    <tr style="border: none;">
+        <td style="width: 190px; text-align: left; border: none;">
+            <img src="{{ logo_left }}" width="170">
+        </td>
+        <td style="text-align: left; font-size: 16px; line-height: 1.8; border: none;">
+            <strong style="font-size: 22px;">PROPERTY EXCEL REALTY</strong><br>
+            <span style="font-size: 14px;">
+                B-7-18, OASIS SQUARE, JALAN PJU 1A/7, OASIS ARA DAMANSARA,<br>
+                47301 PETALING JAYA, SELANGOR<br>
+                012-755 7099 | propertyexcelrealty@gmail.com<br>
+                FIRM REGISTRATION NO: 202203276720 (KT0533995-X)
+            </span>
+        </td>
+        <td style="width: 150px; text-align: right; border: none;">
+            <img src="{{ logo_right }}" width="170">
+        </td>
+    </tr>
+</table>
+
+<hr style="border: 1px solid #000; margin-bottom: 10px;">
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 16px;">
+    <tr>
+        <!-- LEFT SIDE -->
+        <td style="border: none; text-align: left; vertical-align: top;">
+            <span>Received with thanks from:</span><br><br>
+            <span style="font-weight: bold; font-size: 24px;">{{ client_name }}</span>
+        </td>
+
+        <!-- RIGHT SIDE -->
+        <td style="border: none; text-align: right; vertical-align: top;">
+            <div style="font-size: 35px;">OFFICIAL RECEIPT</div>
+            <table style="margin-left: auto; border-collapse: collapse; margin-top: 15px; font-size: 16px; width: 250px;">
+                <tr>
+                    <td style="text-align: right; border: none;"><strong>Receipt no:</strong></td>
+                    <td style="text-align: left; border: none;">{{ receipt_no }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; border: none;"><strong>Receipt date:</strong></td>
+                    <td style="text-align: left; border: none;">{{ receipt_date }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<!-- RECEIPT DETAILS FINAL LAYOUT -->
+<table style="width: 100%; font-size: 16px; border-collapse: collapse; margin-top: 5px;">
+    <tr>
+        <!-- Left side: Details + Remarks -->
+        <td style="width: 70%; vertical-align: top; border: none;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 4px; font-weight: bold; border: none;">File Reference No:</td>
+                    <td style="padding: 4px; font-weight: bold; border: none;">{{ file_ref_no }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px; font-weight: bold; border: none;">The Sum of:</td>
+                    <td style="padding: 4px; border: none;">RM {{ amount }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px; font-weight: bold; border: none;">Ringgit Malaysia:</td>
+                    <td style="padding: 4px; border: none;">{{ amount_words }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px; font-weight: bold; border: none;">Mode of Payment:</td>
+                    <td style="padding: 4px; border: none;">{{ payment_mode }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px; font-weight: bold; border: none;">In Part Payment of:</td>
+                    <td style="padding: 4px; font-weight: bold; border: none;">{{ payment_for }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border: none; height: 10px;"></td> <!-- empty row for spacing -->
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-top: 10px; border: none; font-size: 14px">
+                        <i>Remarks:</i>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding-left: 4px; padding-bottom: 10px; font-size: 14px; border: none;">
+                        <i>1. Validity of this receipt is subject to clearance of cheque</i>
+                    </td>
+                </tr>
+            </table>
+        </td>
+
+        <!-- Right side: Signature + Stamp -->
+        <td style="width: 30%; text-align: right; vertical-align: top; border: none;">
+            <div style="width: 220px; text-align: center; position: relative; margin-top: 30px;">
+                <!-- Signature over -->
+                <img src="{{ sign_path }}" style="width: 220px; position: relative; z-index: 2;">
+
+                <!-- Stamp centered below signature -->
+                <img src="{{ stamp_path }}" style="width: 80px; position: absolute; bottom: 35px; left: 40%; transform: translateX(-40%); z-index: 1; opacity: 0.85;">
+                
+                <!-- Dotted line -->
+                <div style="width: 100%; border-bottom: 1px dotted #000; margin-top: 5px;"></div>
+                
+                <!-- Label -->
+                <div style="font-size: 13px; margin-top: 5px;">
+                    Authorised Signature & Official Stamp
+                </div>
+            </div>
+        </td>
+        
+    </tr>
+</table>
+
+
+<br><hr style="border: 0; border-top: 1px solid #000; margin: 0;">
+
+<p style="margin-top: 0px; font-size: 14px;">
+    <i>Created by: SITI HAWATIF BINTI OMAR</i><br>
+</p>
+
+</body>
+</html>

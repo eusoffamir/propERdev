@@ -1,0 +1,106 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block page_header %}
+<div style="margin-bottom: 2.4rem;">
+    <div style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.25rem;">
+        Your Dashboard
+    </div>
+    <div style="font-size: 1.06rem; color: #7e8a97;">
+        Overview of your cases, earnings, and recent activities.
+    </div>
+</div>
+{% endblock %}
+
+{% block main_content %}
+
+<!-- SUMMARY CARDS -->
+<div class="cards-container">
+    <div class="card">
+        <div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#4361ee55 0%,#22b57333 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-briefcase" style="color:#4361ee;"></i> Your Cases</div>
+        <div class="card-value">{{ user_cases|length }}</div>
+        <div class="card-extra">All-time</div>
+    </div>
+    <div class="card">
+        <div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#22b573aa 0%,#4ce9c055 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-wallet" style="color:#22b573;"></i> Commission Earned</div>
+        <div class="card-value">RM {{ user_commission|int }}</div>
+        <div class="card-extra" style="color:#22b573;">Updated</div>
+    </div>
+    <div class="card">
+        <div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#fca31155 0%,#fcd34d44 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-receipt" style="color:#fca311;"></i> Pending Invoices</div>
+        <div class="card-value">{{ user_unpaid }}</div>
+        <div class="card-extra" style="color:#fca311;">Action Required</div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+    <a href="{{ url_for('cases.add') }}" class="action-btn btn-success"><i class="fas fa-plus"></i> Add Case</a>
+    <a href="#performanceSection" class="action-btn btn-info"><i class="fas fa-chart-line"></i> View Performance</a>
+</div>
+
+<!-- PERFORMANCE CHART -->
+<div id="performanceSection" style="margin-top:2.4rem;margin-bottom:2.8rem;">
+    <div class="section-title" style="margin-bottom: 0.8rem;">Your Earnings Trend (Past 6 Months)</div>
+    <canvas id="agentChart" height="120"></canvas>
+</div>
+
+<!-- RECENT CASES -->
+<div class="recent-cases">
+    <div class="section-title" style="margin-bottom:0.9rem;">Your Recent Cases</div>
+    <ul class="case-list" style="list-style:none;padding:0;">
+        {% for case in user_cases[:6] %}
+        <li class="case-item" style="padding:20px 0;border-bottom:1px solid #f1f1f1;display:flex;justify-content:space-between;align-items:center;">
+            <div class="case-info">
+                <h4 style="margin-bottom:0;font-size:1.11rem;font-weight:700;">{{ case.client_name }}
+                    <span style="font-size:13px;color:#aaa;font-weight:400;">({{ case.date_created[:16] }})</span>
+                </h4>
+                <div style="margin-top:3px;font-size:0.98rem;">RM {{ case.total_amount|int }}</div>
+            </div>
+            <div class="case-actions" style="display:flex;gap:10px;">
+                <a href="{{ url_for('generate_invoice', case_id=case.case_id) }}" class="btn btn-info">Invoice</a>
+                <a href="{{ url_for('generate_receipt', case_id=case.case_id) }}" class="btn btn-primary">Receipt</a>
+            </div>
+        </li>
+        {% endfor %}
+        {% if user_cases|length == 0 %}
+        <li style="padding:22px 0;text-align:center;color:#aaa;">No recent cases.</li>
+        {% endif %}
+    </ul>
+</div>
+
+<!-- CHART.JS SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('agentChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [{
+            label: 'Commission (RM)',
+            data: {{ chart_values | tojson }},
+            borderColor: '#22b573',
+            backgroundColor: 'rgba(34,181,115,0.08)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 5,
+            borderWidth: 2
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: value => 'RM ' + value
+                }
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}

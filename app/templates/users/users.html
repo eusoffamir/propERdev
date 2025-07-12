@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+</head>
+<body>
+    <h2>All Users</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th><th>Email</th><th>Role</th><th>Team</th><th>Last Login</th><th>Last Active</th><th>Actions</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user['name'] }}</td>
+            <td>{{ user['email'] }}</td>
+            <td>{{ user['role'] }}</td>
+            <td>{{ user['team'] }}</td>
+            <td>{{ user['last_login'] }}</td>
+            <td>{{ user['last_active'] }}</td>
+            <td>
+                <a href="/users/edit/{{ user['user_id'] }}">Edit</a>
+                <a href="/users/delete/{{ user['user_id'] }}">Delete</a>
+                <a href="/users/reset/{{ user['user_id'] }}">Reset PW</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/register">Add User</a>
+</body>
+</html>

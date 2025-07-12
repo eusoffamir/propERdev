@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login - propER</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+    body{font-family:'Poppins',Arial,sans-serif;background:#fafafa;display:flex;justify-content:center;align-items:center;height:100vh;}
+    .login-container{background:#fff;padding:42px 32px 28px 32px;border-radius:18px;box-shadow:0 4px 32px rgba(44,51,73,0.08);width:390px;text-align:center;}
+    img{width:70px;margin-bottom:10px;}
+    h2{margin-bottom:18px;color:#4636e0;font-weight:700;font-size:1.6rem;letter-spacing:.3px;}
+    .input-group{display:flex;align-items:center;background:#e9f0fe;border-radius:7px;margin-bottom:18px;padding-left:8px;}
+    .input-group input{flex:1;background:transparent;border:none;padding:13px 8px;font-size:1.08rem;color:#323232;outline:none;min-width:0;}
+    .input-icon{display:flex;align-items:center;justify-content:center;height:100%;padding:0 10px;color:#4361ee;font-size:1.24rem;cursor:pointer;min-width:32px;}
+    .toggle-pw i{font-size:1.2rem;}
+    button{background:#4361ee;color:#fff;padding:12px 0;border:none;border-radius:8px;width:100%;font-size:1.14rem;font-weight:500;box-shadow:0 2px 8px #c8d0fa44;margin-top:4px;transition:background .17s;}
+    button:hover{background:#3f37c9;}
+    .forgot-link{font-size:1rem;color:#4361ee;text-decoration:none;display:block;margin-top:13px;}
+    .forgot-link:hover{text-decoration:underline;}
+    .error-msg{background:#ffe5e9;color:#d7263d;padding:9px 0;border-radius:5px;margin-bottom:16px;font-size:1.03rem;}
+    .modal{position:fixed;z-index:99;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;}
+    .modal-content{background:#fff;border-radius:18px;padding:36px 32px 24px 32px;width:390px;position:relative;box-shadow:0 4px 32px rgba(44,51,73,0.08);text-align:center;}
+    .close{position:absolute;top:20px;right:26px;font-size:1.3rem;color:#aaa;cursor:pointer;}
+    #registerForm input,#registerForm select{width:100%;background:#e9f0fe;border:none;border-radius:7px;padding:13px 10px;font-size:1.07rem;margin-bottom:16px;box-sizing:border-box;}
+    #registerForm input:focus,#registerForm select:focus{outline:2px solid #4361ee;background:#f5f9ff;}
+    #registerForm button[type="submit"]{width:100%;background:#4361ee;color:#fff;border:none;border-radius:8px;padding:13px 0;font-size:1.14rem;font-weight:500;margin-top:8px;box-shadow:0 2px 8px #c8d0fa44;transition:background .17s;cursor:pointer;}
+    #registerForm button[type="submit"]:hover{background:#3f37c9;}
+    #registerForm button[type="submit"]:disabled{background:#d7dbee;color:#3b8bc0;cursor:not-allowed;}
+    .contact-info{margin-top:18px;font-size:.99rem;}
+    .login-btn,.register-btn{width:100%;padding:15px 0;font-size:1.13rem;font-weight:500;border-radius:10px;box-shadow:0 2px 8px #c8d0fa33;margin-top:16px;transition:all .16s;border:2px solid #4361ee;}
+    .login-btn{background:#4361ee;color:#fff;border-color:transparent;}
+    .login-btn:hover{background:#3f37c9;}
+    .register-btn{background:#fff;color:#4361ee;}
+    .register-btn:hover{background:#4361ee;color:#fff;}
+    @media(max-width:500px){.login-container,.modal-content{width:94vw;padding:22px 4vw;}#registerForm input,#registerForm button{font-size:1rem;}}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="{{ url_for('static', filename='logo_left.png') }}" alt="Logo">
+        <div style="font-size: 1.1rem; color: #111; letter-spacing: 0.2px; margin-bottom: 6px;">Property Excel Realty</div>
+        <h2>Sign In to propER</h2>
+        {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+        <form action="{{ url_for('auth.login') }}" method="post" autocomplete="off">
+            <div class="input-group">
+                <input name="email" type="email" placeholder="Email" required>
+                <span class="input-icon"><i class="fa-solid fa-user"></i></span>
+            </div>
+            <div class="input-group">
+                <input id="pw" name="password" type="password" placeholder="Password" required>
+                <span class="input-icon toggle-pw" tabindex="-1" onclick="togglePw()" id="toggleIcon"><i class="fa-solid fa-eye"></i></span>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+            <button type="button" class="register-btn" onclick="openRegister()">Register</button>
+        </form>
+        <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <div id="registerModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeRegister()">&times;</span>
+            <img src="{{ url_for('static', filename='logo_left.png') }}" alt="Logo">
+            <h3>New Agent Registration</h3>
+            <form action="{{ url_for('auth.register') }}" method="POST" id="registerForm">
+                <input name="name" type="text" placeholder="Full Name" required>
+                <input name="nric" id="nric" type="text" placeholder="NRIC (e.g. 010203100109)" required oninput="updateDOB()">
+                <input name="dob" id="dob" type="text" placeholder="Date of Birth (YYYY-MM-DD)" readonly style="background:#f2f2f2;">
+                <input name="email" type="email" placeholder="Email" required>
+                <input name="phone" type="text" placeholder="Phone Number" required>
+                <select name="team" required>
+                    {% for leader in leader_names %}
+                        <option value="{{ leader }}">{{ leader }}</option>
+                    {% endfor %}
+                </select>
+                <input name="password" type="password" placeholder="Password" required>
+                <button type="submit" class="register-btn" id="submitRegistrationBtn">Submit Registration</button>
+            </form>
+            <div class="contact-info">
+                <p><b>Need approval?</b> Contact Admin:<br>
+                <a href="tel:0182212725" style="color:#4361ee;text-decoration:none;">018-2212725 (Eusoff)</a> &nbsp; | &nbsp;
+                <a href="tel:0122903029" style="color:#4361ee;text-decoration:none;">012-290 3029 (Azimi)</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function togglePw(){let pw=document.getElementById("pw"),icon=document.getElementById("toggleIcon").querySelector('i');if(pw.type==="password"){pw.type="text";icon.classList.replace("fa-eye","fa-eye-slash");}else{pw.type="password";icon.classList.replace("fa-eye-slash","fa-eye");}}
+    function openRegister(){document.getElementById('registerModal').style.display='flex';}
+    function closeRegister(){document.getElementById('registerModal').style.display='none';}
+    function updateDOB(){const nric=document.getElementById('nric').value;let dob="";if(/^\d{6}/.test(nric)){const yy=nric.substring(0,2),mm=nric.substring(2,4),dd=nric.substring(4,6);const year=(parseInt(yy)<25?"20":"19")+yy;if(parseInt(mm)>=1&&parseInt(mm)<=12&&parseInt(dd)>=1&&parseInt(dd)<=31){dob=`${year}-${mm}-${dd}`;}}document.getElementById('dob').value=dob;}
+    document.getElementById('registerForm').addEventListener('input',()=>{document.getElementById('submitRegistrationBtn').disabled=!document.getElementById('registerForm').checkValidity();});
+    </script>
+</body>
+</html>

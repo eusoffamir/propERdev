@@ -1,0 +1,156 @@
+{% extends "base/dashboard_base.html" %}
+
+{% block page_header %}
+<div style="margin-bottom: 2.4rem;">
+    <div style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.25rem;">Team Overview</div>
+    <div style="font-size: 1.06rem; color: #7e8a97;">All your team stats, sales, commissions, and agents in one place.</div>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<style>html { scroll-behavior: smooth; }</style>
+
+<!-- SUMMARY CARDS -->
+<div class="cards-container">
+    <div class="card"><div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#4361ee55 0%,#22b57333 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-briefcase" style="color: #4361ee"></i> Team Cases</div>
+        <div class="card-value">{{ team_cases|length }}</div>
+        <div class="card-extra">All-time</div>
+    </div>
+    <div class="card"><div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#22b573aa 0%,#4ce9c055 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-wallet" style="color:#22b573"></i> Team Revenue</div>
+        <div class="card-value">RM {{ team_revenue|int }}</div>
+        <div class="card-extra" style="color:#22b573;">This Month: <b>RM {{ team_revenue_month|int }}</b></div>
+    </div>
+    <div class="card"><div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#f7258555 0%,#fcd34d33 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-coins" style="color:#f72585"></i> Team Commission</div>
+        <div class="card-value">RM {{ team_commission|int }}</div>
+        <div class="card-extra" style="color:#f72585;">This Month: <b>RM {{ team_commission_month|int }}</b></div>
+    </div>
+    <div class="card"><div style="position:absolute;top:0;right:0;height:8px;width:100%;background:linear-gradient(90deg,#4cc9f055 0%,#a0e9fd33 100%);border-radius:22px 22px 0 0;"></div>
+        <div class="card-title"><i class="fas fa-users" style="color:#4cc9f0"></i> Active Agents</div>
+        <div class="card-value">{{ team_size }}</div>
+        <div class="card-extra" style="color:#4cc9f0;">Last Login: {{ last_login or '-' }}</div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+    <a href="/add_case" class="action-btn btn-success"><i class="fas fa-plus"></i> Add Case</a>
+    <a href="#performanceSection" class="action-btn btn-info"><i class="fas fa-chart-line"></i> Team Performance</a>
+    <a href="/reports" class="action-btn btn-primary"><i class="fas fa-file-export"></i> Export Report</a>
+    {% if user_role in ['Admin', 'Leader'] %}
+    <a href="/register" class="action-btn btn-success"><i class="fas fa-user-plus"></i> Add User</a>
+    {% endif %}
+</div>
+
+<!-- TOP AGENTS -->
+<div style="margin-bottom:2.6rem;">
+    <div class="section-title" style="margin-bottom:1rem;">Top Agents <span style="font-size:13px;color:#aaa;">(This Month)</span></div>
+    <div class="cards-container" style="gap:1.2rem;">
+        {% for agent in agent_performance[:3] %}
+        <div class="card" style="background: #f8fafc; box-shadow: 0 2px 12px rgba(67,97,238,0.06); display:flex; flex-direction:column; align-items:center;">
+            <img src="{{ agent['picture'] or url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" style="width:54px;height:54px;border-radius:50%;margin-bottom:12px;box-shadow:0 2px 10px rgba(80,80,80,0.09);">
+            <div style="font-size:1.1rem;font-weight:700;">{{ agent['name'] }}</div>
+            <div style="color:#7e8a97;font-size:0.96rem;margin-bottom:8px;">{{ agent['cases'] }} cases</div>
+            <div style="font-size:1.13rem;margin-bottom:2px;"><b>RM {{ agent['sales']|int }}</b> <span style="color:#aaa;font-size:1rem;">sales</span></div>
+            <div style="font-size:1.1rem;color:#4895ef;">Commission: <b>RM {{ agent['commission']|int }}</b></div>
+        </div>
+        {% endfor %}
+        {% if agent_performance|length == 0 %}
+        <div style="color:#aaa;padding:30px 0;text-align:center;">No agents found.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- PERFORMANCE CHART -->
+<div id="performanceSection" class="chart-box" style="margin-bottom:2.6rem;">
+    <div class="section-title" style="margin-bottom: 0.8rem;">Team Revenue Trend <span style="font-size:13px;color:#aaa;">(Past 6 Months)</span></div>
+    <canvas id="revenueChart" height="120"></canvas>
+</div>
+
+<!-- AGENT PERFORMANCE TABLE -->
+<div class="chart-box" style="margin-bottom:2.6rem;">
+    <div class="section-title" style="margin-bottom: 0.8rem;">Full Agent Performance</div>
+    <table style="width:100%;border-collapse:collapse;font-size:1.05rem;">
+        <thead>
+            <tr style="background:#f4f8fb;">
+                <th style="padding:13px 8px;text-align:left;">Agent</th>
+                <th>Cases</th>
+                <th>Sales</th>
+                <th>Commission</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agent in agent_performance %}
+            <tr style="border-bottom:1px solid #eee;{% if agent.name == user_name %}background:#e8f3ff;{% endif %}">
+                <td style="padding:10px 0;display:flex;align-items:center;">
+                    <img src="{{ agent['picture'] or url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" style="width:32px;height:32px;border-radius:50%;margin-right:12px;">
+                    {{ agent['name'] }}
+                </td>
+                <td align="center">{{ agent['cases'] }}</td>
+                <td align="center">RM {{ agent['sales']|int }}</td>
+                <td align="center" style="color:#22b573;">RM {{ agent['commission']|int }}</td>
+            </tr>
+            {% endfor %}
+            {% if agent_performance|length == 0 %}
+            <tr><td colspan="4" style="color:#aaa;text-align:center;padding:20px;">No agents found.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- RECENT TEAM CASES -->
+<div class="recent-cases" style="margin-bottom: 3.2rem;">
+    <div class="section-title" style="margin-bottom:0.9rem;">Recent Team Cases</div>
+    <ul class="case-list" style="list-style:none;padding:0;">
+        {% for case in team_cases[:6] %}
+        <li class="case-item" style="padding:20px 0;border-bottom:1px solid #f1f1f1;display:flex;justify-content:space-between;align-items:center;">
+            <div class="case-info">
+                <h4 style="margin-bottom:0;font-size:1.11rem;font-weight:700;">{{ case['client_name'] }}
+                    <span style="font-size:13px;color:#aaa;font-weight:400;">({{ case['date_created'][:16] }})</span>
+                </h4>
+                <div style="margin-top:3px;font-size:0.98rem;">By: <b>{{ case['agent_name'] }}</b> | RM {{ case['total']|int }}</div>
+            </div>
+            <div class="case-actions" style="display:flex;gap:10px;">
+                <a href="/generate_invoice/{{ case['case_id'] }}" class="btn btn-info">Invoice</a>
+                <a href="/generate_receipt/{{ case['case_id'] }}" class="btn btn-primary">Receipt</a>
+            </div>
+        </li>
+        {% endfor %}
+        {% if team_cases|length == 0 %}
+        <li style="padding:22px 0;text-align:center;color:#aaa;">No team cases found.</li>
+        {% endif %}
+    </ul>
+</div>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                label: 'Revenue (RM)',
+                data: {{ chart_values | tojson }},
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67,97,238,0.08)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: (value) => 'RM ' + value }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

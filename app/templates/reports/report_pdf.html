@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Financial Report – {{ month or "All" }}</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            font-size: 13px; 
+            background: #f6f8fb; 
+            margin: 0; 
+            padding: 32px 0;
+        }
+        .container {
+            max-width: 950px;
+            margin: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 48px #4864ea18, 0 2px 10px #7090e615;
+            padding: 38px 48px 28px 48px;
+        }
+        .header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 18px;
+            border-bottom: 2.5px solid #4361ee28;
+            padding-bottom: 16px;
+        }
+        .brand-block {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .brand-block img { height: 54px; }
+        .brand-block .brand-name { 
+            font-size: 1.75rem; 
+            color: #3651ad;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+        }
+        .period { font-size: 1.12rem; color: #6583be; }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin: 32px 0 0 0;
+            background: #fafbfe;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+        th, td { 
+            border: 1.3px solid #e2e7f0; 
+            padding: 12px 9px; 
+            text-align: left;
+        }
+        th { 
+            background: #f4f7fd; 
+            color: #2e3c64; 
+            font-size: 1.07rem; 
+            font-weight: 700; 
+            border-top: 2.5px solid #4361ee;
+        }
+        td {
+            font-size: 1.03rem;
+        }
+        .status-kiv { color: #b49108; font-weight: 700; }
+        .status-settle { color: #22b573; font-weight: 700; }
+        .status-cancel { color: #f72585; font-weight: 700; }
+        .table-total {
+            font-weight: 900;
+            color: #2e3c64;
+            background: #f4f8fb;
+            font-size: 1.09rem;
+            border-top: 2.5px solid #4361ee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="brand-block">
+                <!-- If you want logo: -->
+                {% if logo_left %}
+                <img src="{{ logo_left }}" alt="Company Logo">
+                {% endif %}
+                <span class="brand-name">PROPERTY EXCEL REALTY</span>
+            </div>
+            <div class="period">
+                Report Period: <b>{{ month or "All Time" }}</b>
+            </div>
+        </div>
+        <h2 style="font-weight:800; color:#3651ad; margin:12px 0 24px 0;">Financial Summary Report</h2>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Agent</th>
+                <th>Case No</th>
+                <th>Amount (RM)</th>
+                <th>Status</th>
+            </tr>
+            {% set total_amount = 0 %}
+            {% for c in reports %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ c.date_created[:10] if c.date_created else "-" }}</td>
+                <td>{{ c.client_name }}</td>
+                <td>{{ c.agent_name }}</td>
+                <td>{{ c.case_no }}</td>
+                <td>
+                    {% if c.amount %}
+                        {{ "{:,.2f}".format(c.amount|float) }}
+                        {% set total_amount = total_amount + (c.amount|float) %}
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if c.status == 'SETTLE' %}
+                        <span class="status-settle">SETTLE</span>
+                    {% elif c.status == 'KIV' %}
+                        <span class="status-kiv">KIV</span>
+                    {% elif c.status == 'CANCEL' %}
+                        <span class="status-cancel">CANCEL</span>
+                    {% else %}
+                        {{ c.status or '-' }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if reports|length == 0 %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No report data found.</td>
+            </tr>
+            {% else %}
+            <tr class="table-total">
+                <td colspan="5" style="text-align:right;">TOTAL</td>
+                <td>{{ "{:,.2f}".format(total_amount) }}</td>
+                <td></td>
+            </tr>
+            {% endif %}
+        </table>
+        <div style="margin-top:36px; color:#8394bc; font-size:0.98rem;">
+            *This is a system-generated report by propER – PROPERTY EXCEL REALTY.<br>
+            Generated on: <b>{{ now.strftime("%d %b %Y, %I:%M %p") if now else "-" }}</b>
+        </div>
+    </div>
+</body>
+</html>

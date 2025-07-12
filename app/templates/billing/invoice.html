@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; font-size: 11px; }
+        p { line-height: 1.5; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #000; padding: 4px; }
+        th { background-color: #f2f2f2; text-align: center; }
+        td { vertical-align: top; }
+        .signature { margin-top: 30px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER FIXED -->
+<table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 20px;">
+    <tr style="border: none;">
+        <td style="width: 190px; text-align: left; border: none;">
+            <img src="{{ logo_left }}" width="170">
+        </td>
+        <td style="text-align: left; font-size: 16px; line-height: 1.8; border: none;">
+            <strong style="font-size: 22px;">PROPERTY EXCEL REALTY</strong><br>
+            <span style="font-size: 14px;">
+                B-7-18, OASIS SQUARE, JALAN PJU 1A/7, OASIS ARA DAMANSARA,<br>
+                47301 PETALING JAYA, SELANGOR<br>
+                012-755 7099 | propertyexcelrealty@gmail.com<br>
+                FIRM REGISTRATION NO: 202203276720 (KT0533995-X)
+            </span>
+        </td>
+        <td style="width: 150px; text-align: right; border: none;">
+            <img src="{{ logo_right }}" width="170">
+        </td>
+    </tr>
+</table>
+
+<hr style="border: 0; border-top: 1px solid #000; margin: 0;">
+
+
+<!-- INVOICE DETAILS -->
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 16px;">
+    <tr>
+        <td style="width: 60%; border: none; vertical-align: top;">
+            <span style="font-size: 18px;">To :<br>
+            <span style="font-weight: bold; font-size: 18px;">{{ client_name }}</span>
+        </td>
+        <td style="width: 40%; border: none; text-align: right;">
+            <table style="width: 100%; border: none; font-size: 16px;">
+                <tr>
+                    <td style="border: none;">Invoice No</td>
+                    <td style="border: none;">:</td>
+                    <td style="border: none; text-align: left; font-weight: bold;">{{ invoice_no }}</td>
+                </tr>
+                <tr>
+                    <td style="border: none;">Date</td>
+                    <td style="border: none;">:</td>
+                    <td style="border: none; text-align: left; font-weight: bold;">{{ date }}</td>
+                </tr>
+                <tr>
+                    <td style="border: none;">Ref. No</td>
+                    <td style="border: none;">:</td>
+                    <td style="border: none; text-align: left; font-weight: bold;">{{ ref_no }}</td>
+                </tr>
+                <tr>
+                    <td style="border: none;">Reg. No</td>
+                    <td style="border: none;">:</td>
+                    <td style="border: none; text-align: left; font-weight: bold;">{{ reg_no }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<p style="margin-bottom: 18px; font-size: 18px;">
+    <span style="font-size: 16px;">PROPERTY ADDRESS :<br>
+    <strong style="font-size: 16px;">{{ property_address }}</strong><br>
+</p>
+
+<!-- ITEM TABLE -->
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 18px;">
+    <tr>
+        <th style="padding: 10px;">ITEM</th>
+        <th style="padding: 10px;">PARTICULARS</th>
+        <th style="padding: 10px; width: 15%;">AMOUNT (RM)</th>
+        <th style="padding: 10px; width: 15%;">TAX (RM)</th>
+        <th style="padding: 10px; width: 20%;">TOTAL AMOUNT (RM)</th>
+    </tr>
+    <tr>
+        <td style="text-align: center; padding: 10px; vertical-align: middle;;">1.</td>
+        <td style="padding: 10px;">
+            <span style="font-size: 18px;">Net price : RM{{ net_price }}</span><br>
+            <span style="font-size: 18px;">Fee {{ fee_pct }}</span><br><br>
+            <span style="font-size: 18px;">Professional Agency Fee of the above mentioned Property</span><br><br>
+            <span style="font-size: 18px;">SST 8%</span>
+        </td>
+        <td style="text-align: center; padding: 10px; vertical-align: middle;">{{ amount }}</td>
+        <td style="text-align: center; padding: 10px; vertical-align: middle;">{{ tax }}</td>
+        <td style="text-align: center; padding: 10px; vertical-align: middle;">{{ total }}</td>
+    </tr>
+    <tr>
+        <td colspan="4" style="padding: 10px;"><strong style="font-size: 18px;">TOTAL Ringgit Malaysia :</strong> {{ total_words }}</td>
+        <td style="text-align: center; padding: 10px;"><strong style="font-size: 18px;">{{ total }}</strong></td>
+    </tr>
+</table>
+
+<!-- BANK DETAILS -->
+<p style="font-size: 18px; margin-top: 20px;">
+    <strong>Bank Account of Property Excel Realty :</strong><br><br>
+    Bank Name : <strong>{{ bank_name }}</strong><br>
+    Account No : <strong>{{ account_no }}</strong>
+</p>
+
+<!-- SIGNATURE -->
+<div style="margin-top: 40px; text-align: left;">
+    <div style="position: relative; display: inline-block; width: 240px; height: 100px;">
+        <!-- Signature across -->
+        <img src="{{ sign_path }}" style="width: 240px; position: absolute; bottom: 0; left: 0;">
+
+        <!-- Stamp tucked top-right -->
+        <img src="{{ stamp_path }}" style="width: 80px; position: absolute; top: 0; right: 0;">
+    </div>
+    <br>
+    <span style="font-size: 18px;">Authorized Signature</span>
+</div>
+
+
+</body>
+</html>

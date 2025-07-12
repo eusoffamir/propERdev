@@ -1,0 +1,145 @@
+{% extends "base/dashboard_base.html" %}
+{% block title %}Reports – propER{% endblock %}
+
+{% block main_content %}
+<style>
+    #casesTable th, #casesTable td { 
+        vertical-align: top; 
+        min-height: 42px; 
+        word-break: break-word;
+        padding: 12px 16px;
+    }
+
+    #casesTable td {
+        /* Optional: truncate extra long content */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 170px;
+    }
+
+    #casesTable td:nth-child(2), /* Date */
+    #casesTable td:nth-child(3), /* Client */
+    #casesTable td:nth-child(4), /* Agent */
+    #casesTable td:nth-child(5)  /* Case No */ {
+        max-width: 150px;
+    }
+</style>
+
+<div style="margin-bottom: 2.4rem;">
+    <div style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.25rem;">Reports</div>
+    <div style="font-size: 1.06rem; color: #7e8a97;">Your financials, commissions & sales insights.</div>
+</div>
+
+<div style="margin-bottom: 40px;">
+    <canvas id="amountChart" height="110"></canvas>
+</div>
+
+<!-- FILTER FORM -->
+<form method="get" action="{{ url_for('reports.index') }}" style="margin-bottom: 18px;">
+    <div style="display: flex; align-items: center;">
+        <label style="font-weight:600; color:#333; margin-right:8px;">Month:</label>
+        <input type="month" name="month" value="{{ selected_month or '' }}" style="margin-right:12px;padding:9px 12px;border-radius:7px;border:1.2px solid #d2e2fa;font-size:1.12rem;">
+        <button type="submit" class="action-btn btn-primary" style="margin-right:20px;">Filter</button>
+
+        {% if selected_month and reports and reports|length > 0 %}
+        <a href="{{ url_for('download_report_pdf', month=selected_month) }}"
+           class="action-btn btn-info"
+           style="margin-left:8px; font-size:1.02rem;">
+            <i class="fas fa-file-pdf"></i> Download PDF
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+<div style="background:#fff;padding:30px 36px 30px 36px;border-radius:18px;box-shadow:0 6px 32px rgba(67,97,238,0.10);margin-bottom:36px;">
+    <!-- Reports Table (dynamic/placeholder for now) -->
+    <table id="casesTable" style="width:100%;border-collapse:collapse;font-size:1.06rem;table-layout:fixed;">
+        <thead>
+            <tr style="background:#f4f8fb;">
+                <th style="padding:12px 16px;text-align:left;">#</th>
+                <th style="padding:12px 16px;text-align:left;">Date</th>
+                <th style="padding:12px 16px;text-align:left;">Client</th>
+                <th style="padding:12px 16px;text-align:left;">Agent</th>
+                <th style="padding:12px 16px;text-align:left;">Case No</th>
+                <th style="padding:12px 16px;text-align:left;">Amount (RM)</th>
+                <th style="padding:12px 16px;text-align:left;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% if reports %}
+            {% for r in reports %}
+            <tr style="border-bottom:1.2px solid #e9eefa;">
+                <td style="padding:10px 16px;">{{ loop.index }}</td>
+                <td style="padding:10px 16px;">{{ r.date_created[:10] if r.date_created else '-' }}</td>
+                <td style="padding:10px 16px;">{{ r.client_name }}</td>
+                <td style="padding:10px 16px;">{{ r.agent_name }}</td>
+                <td style="padding:10px 16px;">{{ r.case_no }}</td>
+                <td style="padding:10px 16px;">{{ '{:,.2f}'.format(r.amount or 0) }}</td>
+                <td style="padding:10px 16px;">
+                    {% if r.status == 'SETTLE' %}
+                        <span style="color:#22b573;font-weight:700;">SETTLE</span>
+                    {% elif r.status == 'KIV' %}
+                        <span style="color:#b49108;font-weight:700;">KIV</span>
+                    {% elif r.status == 'CANCEL' %}
+                        <span style="color:#f72585;font-weight:700;">CANCEL</span>
+                    {% else %}
+                        <span>{{ r.status or '-' }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;padding:33px 0;color:#aaa;font-weight:600;">
+                    No report data found.
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <!-- You can add charts, totals, export buttons etc here later -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('amountChart').getContext('2d');
+const chartLabels = {{ chart_labels|tojson|safe }};
+const chartAmounts = {{ chart_amounts|tojson|safe }};
+
+const amountChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: chartLabels,
+        datasets: [{
+            label: 'Amount (RM)',
+            data: chartAmounts,
+            backgroundColor: 'rgba(67,97,238,0.35)',
+            borderColor: '#4361ee',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: {
+                title: { display: true, text: 'Client' },
+                ticks: {
+                    maxRotation: 20, minRotation: 0, autoSkip: true,
+                    callback: function(val, idx, ticks) {
+                        let lbl = this.getLabelForValue(val);
+                        return lbl.length > 14 ? lbl.substring(0,12) + "..." : lbl;
+                    }
+                }
+            },
+            y: { title: { display: true, text: 'Amount (RM)' }, beginAtZero: true }
+        }
+    }
+});
+</script>
+
+
+{% endblock %}

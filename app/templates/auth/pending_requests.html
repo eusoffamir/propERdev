@@ -1,0 +1,134 @@
+{% extends "base/dashboard_base.html" %}
+{% block title %}Pending Requests – propER{% endblock %}
+
+{% block main_content %}
+<div class="center-card" style="margin:38px auto;background:#fff;border-radius:22px;box-shadow:0 8px 40px #4361ee18, 0 2px 10px #e9ecef44;padding:48px 38px 38px 38px;position:relative;">
+
+  <div class="logo-bar" style="display:flex;align-items:center;margin-bottom:24px;">
+    <img src="{{ url_for('static', filename='logo_left.png') }}" alt="propER Logo" style="width:54px;height:54px;margin-right:18px;">
+    <span class="logo-bar-title" style="font-size:2.2rem;font-weight:800;color:#4361ee;letter-spacing:0.5px;">Pending Registration Requests</span>
+    <button class="exit-btn" onclick="window.location.href='{{ url_for('dashboard.index') }}'" title="Back to Dashboard" style="position:absolute;top:26px;right:26px;background:none;border:none;color:#adb5bd;font-size:1.6rem;cursor:pointer;transition:color .18s;"><i class="fas fa-arrow-left"></i></button>
+  </div>
+
+  {% if reqs|length == 0 %}
+  <div style="margin:26px 0 0;text-align:center;color:#999;">
+    <i class="fas fa-check-circle" style="color:#51cf66;font-size:2.5rem;margin-bottom:8px;"></i>
+    <div>No pending registration requests.</div>
+  </div>
+  {% else %}
+  <div style="width:100%;overflow-x:auto;">
+    <table style="min-width:700px;width:100%;border-collapse:separate;border-spacing:0 6px;font-size:1.07rem;background:#fff;">
+      <thead>
+        <tr style="background:#f5f7ff;font-weight:700;color:#222;font-size:1.06rem;">
+          <th style="text-align:left;padding:16px 18px;">Name</th>
+          <th style="text-align:left;padding:16px 18px;">Email</th>
+          <th style="text-align:left;padding:16px 18px;">NRIC</th>
+          <th style="text-align:left;padding:16px 18px;">Team</th>
+          <th style="text-align:center;padding:16px 18px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in reqs %}
+        <tr style="box-shadow:0 2px 10px #dbe5fa23;">
+          <td style="background:#fff;padding:16px 18px;">{{ req.name }}</td>
+          <td style="background:#fff;padding:16px 18px;">{{ req.email }}</td>
+          <td style="background:#fff;padding:16px 18px;">{{ req.nric }}</td>
+          <td style="background:#fff;padding:16px 18px;">{{ req.team or '-' }}</td>
+          <td style="background:#fff;padding:16px 18px;">
+            <div style="display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;justify-content:center;">
+              <form action="{{ url_for('approve_request', request_id=req.request_id) }}" method="post">
+                <button type="submit" style="white-space:nowrap;background:#51cf66;color:#fff;font-weight:600;padding:6px 14px;border-radius:8px;border:none;font-size:0.95rem;">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+              </form>
+              <form action="{{ url_for('reject_request', request_id=req.request_id) }}" method="post">
+                <button type="submit" style="white-space:nowrap;background:#fa5252;color:#fff;font-weight:600;padding:6px 14px;border-radius:8px;border:none;font-size:0.95rem;">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div style="font-size:1.25rem;font-weight:700;margin:30px 0 12px 0;color:#22223b;display:flex;align-items:center;">
+    <i class="fas fa-users" style="margin-right:12px;color:#4895ef;"></i>Active Users
+  </div>
+
+  <div style="width:100%;overflow-x:auto;">
+    <table style="min-width:700px;width:100%;border-collapse:separate;border-spacing:0 6px;font-size:1.07rem;background:#fff;">
+      <thead>
+        <tr style="background:#f5f7ff;font-weight:700;color:#222;font-size:1.06rem;">
+          <th style="text-align:left;padding:16px 18px;">Name</th>
+          <th style="text-align:left;padding:16px 18px;">Email</th>
+          <th style="text-align:left;padding:16px 18px;">Role</th>
+          <th style="text-align:left;padding:16px 18px;">Team</th>
+          <th style="text-align:left;padding:16px 18px;">Last Login</th>
+          <th style="text-align:center;padding:16px 18px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr style="box-shadow:0 2px 10px #dbe5fa23;">
+          <td style="background:#fff;padding:16px 18px;">{{ user.name }}</td>
+          <td style="background:#fff;padding:16px 18px;">{{ user.email }}</td>
+          <td style="background:#fff;padding:16px 18px;">
+            {% if user.role == "Admin" %}
+              <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#f72585;color:#fff;">Admin</span>
+            {% elif user.role == "Leader" %}
+              <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4895ef;color:#fff;">Leader</span>
+            {% else %}
+              <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4cc9f0;color:#222;">Agent</span>
+            {% endif %}
+          </td>
+          <td style="background:#fff;padding:16px 18px;">{{ user.team or "-" }}</td>
+          <td style="background:#fff;padding:16px 18px;color:#666;">{{ user.last_login or "-" }}</td>
+          <td style="background:#fff;padding:16px 18px;text-align:center;">
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                
+                <!-- View Button -->
+                <a href="{{ url_for('user_details', user_id=user.user_id) }}" title="Details"
+                style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                        background:#edf2fb;color:#4361ee;border-radius:8px;">
+                <i class="fas fa-eye"></i>
+                </a>
+
+                <!-- Edit Button -->
+                <a href="{{ url_for('edit_user', user_id=user.user_id) }}" title="Edit"
+                style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                        background:#ffd60a;color:#22223b;border-radius:8px;">
+                <i class="fas fa-pen"></i>
+                </a>
+
+                <!-- Conditional Button -->
+                {% if user.role != "Admin" %}
+                <form action="{{ url_for('remove_user', user_id=user.user_id) }}" method="post"
+                        onsubmit="return confirm('Are you sure you want to remove this user?');"
+                        style="display:inline;">
+                    <button type="submit" title="Remove"
+                            style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                background:#fa5252;color:#fff;border:none;border-radius:8px;">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+                {% else %}
+                <span title="Admin cannot be removed"
+                        style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                            color:#adb5bd;border-radius:8px;">
+                    <i class="fas fa-ban"></i>
+                </span>
+                {% endif %}
+
+            </div>
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
