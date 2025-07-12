@@ -1,0 +1,165 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proper"
+version = "1.0.0"
+description = "Professional Property Management System"
+authors = [
+    {name = "MOHD ANUAR & CO.", email = "team@proper.com"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "Flask==2.3.2",
+    "Flask-SQLAlchemy==3.1.1",
+    "Flask-Login>=0.6.0",
+    "Flask-WTF>=1.1.0",
+    "WTForms>=3.0.0",
+    "email-validator>=2.0.0",
+    "python-dotenv==1.0.1",
+    "Werkzeug==2.3.0",
+    "Jinja2==3.1.2",
+    "MarkupSafe>=2.1.0",
+    "itsdangerous>=2.1.0",
+    "click>=8.1.0",
+    "blinker>=1.6.0",
+    "gunicorn==21.2.0",
+    "flasgger==0.9.7.1",
+    "pdfkit==1.0.0",
+    "num2words==0.5.12",
+    "psycopg2-binary==2.9.9",
+    "pandas==2.2.2",
+    "openpyxl==3.1.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+production = [
+    "gunicorn==21.2.0",
+    "psycopg2-binary==2.9.9",
+    "pdfkit==1.0.0",
+    "num2words==0.5.12",
+    "pandas==2.2.2",
+    "openpyxl==3.1.2",
+]
+
+[project.urls]
+Homepage = "https://proper.propin.dev"
+Repository = "https://github.com/proper/proper"
+Documentation = "https://proper.propin.dev/docs"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "slow: Slow running tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "flask.*",
+    "flask_sqlalchemy.*",
+    "flask_login.*",
+    "flask_wtf.*",
+    "wtforms.*",
+    "email_validator.*",
+    "pdfkit.*",
+    "num2words.*",
+    "pandas.*",
+    "openpyxl.*",
+]
+ignore_missing_imports = true 

@@ -1,6 +1,6 @@
 from flask import Flask
-from app.config import get_config_by_name
-from app.db import init_db
+from app.core.config import get_config_by_name
+from app.core.db import init_db
 from app.routes import register_routes
 from flask_login import LoginManager
 from app.models.users import User
@@ -28,7 +28,7 @@ def create_app(config_name='development') -> Flask:
     
     # Create database tables if they don't exist
     with app.app_context():
-        from app.db import db
+        from app.core.db import db
         db.create_all()
     
     return app

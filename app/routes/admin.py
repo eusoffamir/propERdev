@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, session, redirect, url_for, flash
 from sqlalchemy import text, inspect
 from app.models import *
-from app.db import db
+from app.core.db import db
 import pandas as pd
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')

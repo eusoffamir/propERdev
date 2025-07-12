@@ -1,6 +1,6 @@
 # models/activity_logs.py
 
-from app.db import db
+from app.core.db import db
 from datetime import datetime
 from app.models.base import BaseModel
 

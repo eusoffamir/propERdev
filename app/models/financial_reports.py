@@ -1,6 +1,6 @@
 # models/financial_reports.py
 
-from app.db import db
+from app.core.db import db
 from app.models.base import BaseModel
 
 class FinancialReport(BaseModel):

@@ -1,6 +1,6 @@
 # models/base.py
 
-from app.db import db
+from app.core.db import db
 
 class BaseModel(db.Model):
     """Base model class that includes common fields"""

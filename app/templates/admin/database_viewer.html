@@ -19,27 +19,44 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-database"></i> Available Tables
-                    </h3>
-                    <div class="card-tools">
-                        <span class="badge badge-info">{{ tables|length }} Tables</span>
+                    <div class="database-section-header">
+                        <i class="fas fa-database"></i>
+                        <span>Available Tables</span>
+                        <span class="database-section-badge">{{ tables|length }} Tables</span>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="database-table-grid">
                         {% for table in tables %}
-                        <div class="col-md-4 col-lg-3 mb-3">
-                            <div class="card table-card">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-table fa-2x text-primary mb-2"></i>
-                                    <h6 class="card-title">{{ table }}</h6>
-                                    <a href="{{ url_for('admin.view_table', table_name=table) }}" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i> View Data
-                                    </a>
+                        <div>
+                            <a href="{{ url_for('admin.view_table', table_name=table) }}" class="table-card-link">
+                                <div class="card table-card table-card-responsive">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title text-break">{{ table }}</h6>
+                                        {% if 'user' in table %}
+                                            <i class="fas fa-user fa-2x text-primary mb-2"></i>
+                                        {% elif 'client' in table %}
+                                            <i class="fas fa-address-book fa-2x text-primary mb-2"></i>
+                                        {% elif 'property' in table %}
+                                            <i class="fas fa-building fa-2x text-primary mb-2"></i>
+                                        {% elif 'case' in table %}
+                                            <i class="fas fa-briefcase fa-2x text-primary mb-2"></i>
+                                        {% elif 'financial' in table or 'ledger' in table %}
+                                            <i class="fas fa-file-invoice-dollar fa-2x text-primary mb-2"></i>
+                                        {% elif 'notification' in table %}
+                                            <i class="fas fa-bell fa-2x text-primary mb-2"></i>
+                                        {% elif 'activity' in table or 'log' in table %}
+                                            <i class="fas fa-history fa-2x text-primary mb-2"></i>
+                                        {% elif 'role' in table %}
+                                            <i class="fas fa-user-tag fa-2x text-primary mb-2"></i>
+                                        {% elif 'company' in table or 'setting' in table %}
+                                            <i class="fas fa-cogs fa-2x text-primary mb-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-table fa-2x text-primary mb-2"></i>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>

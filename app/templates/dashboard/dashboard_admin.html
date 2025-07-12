@@ -51,7 +51,7 @@
     <a href="{{ url_for('users.register') }}" class="action-btn btn-success"><i class="fas fa-user-plus"></i> Add User</a>
     {% endif %}
     {% if user_role == 'Admin' %}
-    <a href="{{ url_for('admin.index') }}" class="action-btn btn-warning"><i class="fas fa-database"></i> Database Viewer</a>
+    <a href="{{ url_for('admin.index') }}" class="action-btn btn-database"><i class="fas fa-database"></i> Database Viewer</a>
     {% endif %}
 </div>
 
@@ -62,52 +62,49 @@
 </div>
 
 <!-- AGENT PERFORMANCE LEADERBOARD -->
-<div class="chart-box">
-    <div class="section-title" style="margin-bottom: 0.8rem;">Agent Performance Leaderboard</div>
-    <table style="width:100%;border-collapse:collapse;font-size:1.05rem;">
-        <thead>
-            <tr style="background:#f4f8fb;">
-                <th style="padding:13px 8px;text-align:left;">Agent</th>
-                <th>Cases</th>
-                <th>Sales</th>
-                <th>Commission</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for agent in agent_performance %}
-            <tr style="border-bottom:1px solid #eee;">
-                <td style="padding:10px 0;display:flex;align-items:center;">
-                    <img src="{{ agent.picture or url_for('static', filename='default-avatar.jpg') }}" alt="Avatar" style="width:32px;height:32px;border-radius:50%;margin-right:12px;">
-                    {{ agent.name }}
-                </td>
-                <td align="center">{{ agent.cases }}</td>
-                <td align="center">RM {{ agent.sales|int }}</td>
-                <td align="center" style="color:#22b573;">RM {{ agent.commission|int }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="leaderboard-section">
+  <div class="section-title">Agent Performance Leaderboard</div>
+  <div class="leaderboard-list-vertical">
+    {% for agent in agent_performance %}
+    <div class="leaderboard-card-vertical rank-{{ loop.index }}">
+      <div class="leaderboard-rank">
+        <span class="rank-badge">{{ loop.index }}</span>
+      </div>
+      <div class="leaderboard-avatar-large">
+        <img src="{{ agent.picture or url_for('static', filename='default-avatar.jpg') }}" alt="Avatar">
+      </div>
+      <div class="leaderboard-info-vertical">
+        <div class="agent-name-vertical">{{ agent.name }}</div>
+        <div class="agent-stats-vertical">
+          <span title="Cases"><i class="fas fa-briefcase"></i> {{ agent.cases }}</span>
+          <span title="Sales"><i class="fas fa-wallet"></i> RM {{ agent.sales|int }}</span>
+          <span class="commission-badge"><i class="fas fa-coins"></i> RM {{ agent.commission|int }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 
 <!-- RECENT TEAM CASES -->
-<div class="recent-cases" style="margin-bottom: 3.2rem;">
+<div class="recent-cases-section">
     <div class="section-title">Recent Team Cases</div>
-    <ul class="case-list" style="list-style:none;padding:0;">
+    <div class="recent-cases-list">
         {% for case in team_cases[:6] %}
-        <li class="case-item" style="padding:20px 0;border-bottom:1px solid #f1f1f1;display:flex;justify-content:space-between;align-items:center;">
-            <div class="case-info">
-                <h4 style="margin-bottom:0;font-size:1.11rem;font-weight:700;">{{ case.client_name }}
-                    <span style="font-size:13px;color:#aaa;font-weight:400;">({{ case.date_created[:16] }})</span>
-                </h4>
-                <div style="margin-top:3px;font-size:0.98rem;">By: <b>{{ case.agent_name }}</b> | RM {{ case.total_amount|int }}</div>
+        <div class="case-card">
+            <div class="case-main">
+                <div class="case-title">{{ case.client_name }}
+                    <span class="case-date">({{ case.date_created[:16] }})</span>
+                </div>
+                <div class="case-meta">By: <b>{{ case.agent_name }}</b> | RM {{ case.total_amount|int }}</div>
             </div>
-            <div class="case-actions" style="display:flex;gap:10px;">
-                <a href="{{ url_for('cases.generate_invoice', case_id=case.case_id) }}" class="btn btn-info">Invoice</a>
-                <a href="{{ url_for('cases.generate_receipt', case_id=case.case_id) }}" class="btn btn-primary">Receipt</a>
+            <div class="case-actions">
+                <a href="{{ url_for('cases.generate_invoice_pdf', case_id=case.case_id) }}" class="btn btn-info"><i class="fas fa-file-pdf"></i> Invoice</a>
+                <a href="{{ url_for('cases.generate_receipt_pdf', case_id=case.case_id) }}" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Receipt</a>
             </div>
-        </li>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 </div>
 
 <!-- CHART SCRIPT -->
@@ -133,7 +130,9 @@ new Chart(ctx, {
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { callback: value => 'RM ' + value }
+                ticks: {
+                    callback: function(value) { return 'RM ' + value; }
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
 # models/clients.py
 
-from app.db import db
+from app.core.db import db
 from app.models.base import BaseModel
 
 class Client(BaseModel):
