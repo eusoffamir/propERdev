@@ -82,12 +82,12 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('cases.generate_invoice', case_id=case['case_id']) }}" 
+                    <a href="{{ url_for('cases.generate_invoice_pdf', case_id=case['case_id']) }}" 
                     class="action-btn btn-info" 
                     style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; margin-right:7px; display:inline-block;">
                         <i class="fas fa-file-invoice"></i> Invoice
                     </a>
-                    <a href="{{ url_for('cases.generate_receipt', case_id=case['case_id']) }}" 
+                    <a href="{{ url_for('cases.generate_receipt_pdf', case_id=case['case_id']) }}" 
                     class="action-btn btn-primary" 
                     style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; display:inline-block;">
                         <i class="fas fa-receipt"></i> Receipt

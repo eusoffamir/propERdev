@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, make_response
 from datetime import datetime
 import psycopg2
 import psycopg2.extras
 from app.utils.db import get_db
 from app.utils.auth import login_required, leader_required
+import pdfkit
 
 cases_bp = Blueprint('cases', __name__)
 
@@ -122,39 +123,73 @@ def delete(case_id):
 @login_required
 def generate_invoice(case_id):
     """Generate invoice for a case"""
+    from num2words import num2words
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # Fetch case only (no join)
     cur.execute('SELECT * FROM cases WHERE case_id = %s', (case_id,))
     case = cur.fetchone()
-    cur.close()
-    conn.close()
-
     if not case:
+        cur.close()
+        conn.close()
         flash('Case not found.', 'error')
         return redirect(url_for('cases.index'))
 
-    def safe_float(val):
-        try:
-            return float(val) if val else 0
-        except (ValueError, TypeError):
-            return 0
+    # Fetch company settings (for bank, address, etc.)
+    cur.execute('SELECT * FROM company_settings LIMIT 1')
+    company = cur.fetchone()
+    cur.close()
+    conn.close()
 
-    # Calculate invoice details
-    total_amount = safe_float(case['total_amount'])
-    commission_rate = 0.10  # 10% commission
-    commission_amount = total_amount * commission_rate
-    net_amount = total_amount - commission_amount
+    # Prepare all fields for the template
+    net_price = float(case['purchase_price'] or 0)
+    fee_pct = float(case['fee_pct'] or 0)
+    amount = round(net_price * (fee_pct / 100), 2)
+    tax = round(amount * 0.08, 2)  # SST 8%
+    total = round(amount + tax, 2)
+    total_words = num2words(total, to='currency', lang='en').replace('euro', 'Ringgit Malaysia').upper() + ' ONLY'
 
-    invoice_data = {
-        'case': case,
-        'total_amount': total_amount,
-        'commission_amount': commission_amount,
-        'net_amount': net_amount,
-        'invoice_date': datetime.now().strftime('%Y-%m-%d'),
-        'invoice_number': f"INV-{case_id:06d}"
-    }
+    # Invoice meta
+    invoice_no = case['invoice_no'] or f"{case['case_id']}"
+    date = case['date_created'][:10] if case['date_created'] else datetime.now().strftime('%Y-%m-%d')
+    ref_no = case['reference_no'] or '-'
+    reg_no = case['registration_no'] or (company['firm_reg_no'] if company and 'firm_reg_no' in company else '-')
 
-    return render_template('billing/invoice.html', **invoice_data)
+    # Client and property
+    client_name = case['client_name'] or '-'
+    property_address = case['property_address'] or '-'
+
+    # Company/bank
+    bank_name = company['bank_name'] if company and 'bank_name' in company else '-'
+    account_no = company['bank_account'] if company and 'bank_account' in company else '-'
+
+    # Logo and signature paths (static)
+    logo_left = url_for('static', filename='logo_left.png')
+    logo_right = url_for('static', filename='logo_right.png')
+    sign_path = url_for('static', filename='signature.png')
+    stamp_path = url_for('static', filename='stamp_signature.png')
+
+    return render_template(
+        'billing/invoice.html',
+        client_name=client_name,
+        invoice_no=invoice_no,
+        date=date,
+        ref_no=ref_no,
+        reg_no=reg_no,
+        property_address=property_address,
+        net_price=f"{net_price:,.2f}",
+        fee_pct=f"{fee_pct:.2f}%",
+        amount=f"{amount:,.2f}",
+        tax=f"{tax:,.2f}",
+        total=f"{total:,.2f}",
+        total_words=total_words,
+        bank_name=bank_name,
+        account_no=account_no,
+        logo_left=logo_left,
+        logo_right=logo_right,
+        sign_path=sign_path,
+        stamp_path=stamp_path
+    )
 
 @cases_bp.route('/generate_receipt/<int:case_id>')
 @login_required
@@ -193,3 +228,129 @@ def generate_receipt(case_id):
     }
 
     return render_template('billing/resit.html', **receipt_data)
+
+@cases_bp.route('/generate_invoice_pdf/<int:case_id>')
+@login_required
+def generate_invoice_pdf(case_id):
+    from num2words import num2words
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute('SELECT * FROM cases WHERE case_id = %s', (case_id,))
+    case = cur.fetchone()
+    if not case:
+        cur.close()
+        conn.close()
+        flash('Case not found.', 'error')
+        return redirect(url_for('cases.index'))
+    cur.execute('SELECT * FROM company_settings LIMIT 1')
+    company = cur.fetchone()
+    cur.close()
+    conn.close()
+    # Use DB values directly, but swap amount and total due to DB issue
+    net_price = float(case['purchase_price'] or 0)
+    fee_pct = float(case['fee_pct'] or 0)
+    amount = float(case['total_amount'] or 0)  # swapped
+    tax = float(case['tax'] or 0)
+    total = float(case['amount'] or 0)         # swapped
+    total_words = num2words(total, to='currency', lang='en').replace('euro', 'Ringgit Malaysia').upper() + ' ONLY'
+    invoice_no = case['invoice_no'] or f"{case['case_id']}"
+    date = case['date_created'][:10] if case['date_created'] else datetime.now().strftime('%Y-%m-%d')
+    ref_no = case['reference_no'] or '-'
+    reg_no = case['registration_no'] or (company['firm_reg_no'] if company and 'firm_reg_no' in company else '-')
+    client_name = case['client_name'] or '-'
+    property_address = case['property_address'] or '-'
+    bank_name = company['bank_name'] if company and 'bank_name' in company else '-'
+    account_no = company['bank_account'] if company and 'bank_account' in company else '-'
+    logo_left = url_for('static', filename='logo_left.png', _external=True)
+    logo_right = url_for('static', filename='logo_right.png', _external=True)
+    sign_path = url_for('static', filename='signature.png', _external=True)
+    stamp_path = url_for('static', filename='stamp_signature.png', _external=True)
+    context = dict(
+        client_name=client_name,
+        invoice_no=invoice_no,
+        date=date,
+        ref_no=ref_no,
+        reg_no=reg_no,
+        property_address=property_address,
+        net_price=f"{net_price:,.2f}",
+        fee_pct=f"{fee_pct:.2f}%",
+        amount=f"{amount:,.2f}",
+        tax=f"{tax:,.2f}",
+        total=f"{total:,.2f}",
+        total_words=total_words,
+        bank_name=bank_name,
+        account_no=account_no,
+        logo_left=logo_left,
+        logo_right=logo_right,
+        sign_path=sign_path,
+        stamp_path=stamp_path
+    )
+    rendered = render_template('billing/invoice.html', **context)
+    pdf = pdfkit.from_string(rendered, False)
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=invoice.pdf'
+    return response
+
+@cases_bp.route('/generate_receipt_pdf/<int:case_id>')
+@login_required
+def generate_receipt_pdf(case_id):
+    from num2words import num2words
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute('SELECT * FROM cases WHERE case_id = %s', (case_id,))
+    case = cur.fetchone()
+    if not case:
+        cur.close()
+        conn.close()
+        flash('Case not found.', 'error')
+        return redirect(url_for('cases.index'))
+    cur.execute('SELECT * FROM company_settings LIMIT 1')
+    company = cur.fetchone()
+    cur.close()
+    conn.close()
+    # For receipt as well
+    net_price = float(case['purchase_price'] or 0)
+    fee_pct = float(case['fee_pct'] or 0)
+    amount = float(case['total_amount'] or 0)  # swapped
+    tax = float(case['tax'] or 0)
+    total = float(case['amount'] or 0)         # swapped
+    total_words = num2words(total, to='currency', lang='en').replace('euro', 'Ringgit Malaysia').upper() + ' ONLY'
+    receipt_no = case['invoice_no'] or f"{case['case_id']}"
+    date = case['date_created'][:10] if case['date_created'] else datetime.now().strftime('%Y-%m-%d')
+    ref_no = case['reference_no'] or '-'
+    reg_no = case['registration_no'] or (company['firm_reg_no'] if company and 'firm_reg_no' in company else '-')
+    client_name = case['client_name'] or '-'
+    property_address = case['property_address'] or '-'
+    bank_name = company['bank_name'] if company and 'bank_name' in company else '-'
+    account_no = company['bank_account'] if company and 'bank_account' in company else '-'
+    logo_left = url_for('static', filename='logo_left.png', _external=True)
+    logo_right = url_for('static', filename='logo_right.png', _external=True)
+    sign_path = url_for('static', filename='signature.png', _external=True)
+    stamp_path = url_for('static', filename='stamp_signature.png', _external=True)
+    context = dict(
+        client_name=client_name,
+        receipt_no=receipt_no,
+        date=date,
+        ref_no=ref_no,
+        reg_no=reg_no,
+        property_address=property_address,
+        net_price=f"{net_price:,.2f}",
+        fee_pct=f"{fee_pct:.2f}%",
+        amount=f"{amount:,.2f}",
+        tax=f"{tax:,.2f}",
+        total=f"{total:,.2f}",
+        total_words=total_words,
+        bank_name=bank_name,
+        account_no=account_no,
+        logo_left=logo_left,
+        logo_right=logo_right,
+        sign_path=sign_path,
+        stamp_path=stamp_path
+    )
+    rendered = render_template('billing/resit.html', **context)
+    pdf = pdfkit.from_string(rendered, False)
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=receipt.pdf'
+    return response

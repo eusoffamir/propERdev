@@ -31,6 +31,9 @@
                         </a>
                     </li>
                 {% endif %}
+                {% if user_role == 'Admin' %}
+                    <li><a href="{{ url_for('admin.index') }}" class="nav-link{% if active=='database' %} active{% endif %}"><i class="fas fa-database"></i>Database</a></li>
+                {% endif %}
                 <li><a href="{{ url_for('settings.index') }}" class="nav-link{% if active=='settings' %} active{% endif %}"><i class="fas fa-cog"></i>Settings</a></li>
             </ul>
             <div class="sidebar-footer" style="margin-top:auto;padding-top:2.5rem;font-size:0.98rem;color:#b7cdfd;text-align:center;">&copy; {{ year or 2025 }} propER | Vendor Vision</div>
