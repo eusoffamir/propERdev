@@ -19,11 +19,11 @@ First, ensure PostgreSQL is running and create the database:
 psql -U postgres
 
 -- Create database
-CREATE DATABASE propdb;
+CREATE DATABASE your_database_name;
 
 -- Create user (optional, you can use postgres user)
-CREATE USER propuser WITH PASSWORD 'proppass123';
-GRANT ALL PRIVILEGES ON DATABASE propdb TO propuser;
+CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+GRANT ALL PRIVILEGES ON DATABASE your_database_name TO your_db_user;
 
 -- Exit psql
 \q
@@ -39,8 +39,8 @@ FLASK_ENV=development
 SECRET_KEY=your-secret-key-change-this-in-production
 
 # Database Configuration
-DATABASE_URL=postgresql://postgres:proper123@localhost:5432/propdb
-TEST_DATABASE_URL=postgresql://postgres:proper123@localhost:5432/propdb_test
+DATABASE_URL=postgresql://your-db-user:your-db-password@localhost:5432/your_database_name
+TEST_DATABASE_URL=postgresql://your-db-user:your-db-password@localhost:5432/your_database_name_test
 
 # Server Configuration
 HOST=127.0.0.1
@@ -124,9 +124,9 @@ After initialization, the following users are created:
 
 | Role | Email | Password | Team |
 |------|-------|----------|------|
-| Admin | eusoff@proper.com | eusoff | Admin |
-| Leader | azimi@proper.com | azimi | Team A |
-| Agent | mizan@proper.com | mizan | Team A |
+| Admin | admin@yourcompany.com | adminpass | Admin |
+| Leader | leader@yourcompany.com | leaderpass | Team A |
+| Agent | agent@yourcompany.com | agentpass | Team A |
 
 ## Database Schema
 

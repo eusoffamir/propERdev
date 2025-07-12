@@ -116,3 +116,7 @@ dmypy.json
 .pyre/
 
 # pyright: reportCallIssue=false
+
+# Sensitive files
+.env
+PRIVATE_INFO.txt

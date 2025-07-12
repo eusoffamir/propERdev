@@ -101,7 +101,7 @@ make docker-run
 
 ### Quick Deployment (WinSCP + PuTTY)
 ```bash
-# 1. Transfer files via WinSCP to 51.38.158.159
+# 1. Transfer files via WinSCP to your-server-ip
 # 2. SSH via PuTTY and run:
 make deploy
 ```
@@ -109,7 +109,7 @@ make deploy
 ### Manual Deployment
 ```bash
 # SSH into server
-ssh mac@51.38.158.159
+ssh your-username@your-server-ip
 
 # Navigate to project and deploy
 cd /path/to/your/propER
@@ -127,10 +127,10 @@ gunzip -c backups/db_backup_YYYYMMDD_HHMMSS.sql.gz | psql -h localhost -U postgr
 ```
 
 **Server Details:**
-- **Host**: 51.38.158.159
-- **Domain**: proper.propin.dev
-- **Database**: PostgreSQL (propdb)
-- **SSH**: mac@51.38.158.159
+- **Host**: your-server-ip
+- **Domain**: your-domain.com
+- **Database**: PostgreSQL (your-database-name)
+- **SSH**: your-username@your-server-ip
 
 See [Quick Deployment Guide](docs/deployment/QUICK_DEPLOYMENT.md) for detailed instructions.
 

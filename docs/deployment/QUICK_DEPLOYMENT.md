@@ -4,10 +4,10 @@ This guide covers the quick deployment process using your current workflow (WinS
 
 ## Your Current Setup
 
-- **Server**: 51.38.158.159
-- **Domain**: proper.propin.dev
-- **SSH**: mac@51.38.158.159 (port 22)
-- **Database**: PostgreSQL (propdb)
+- **Server**: your-server-ip
+- **Domain**: your-domain.com
+- **SSH**: your-username@your-server-ip (port 22)
+- **Database**: PostgreSQL (your-database-name)
 - **Tools**: WinSCP + PuTTY
 
 ## Quick Deployment Steps
@@ -23,9 +23,9 @@ git push origin main
 ### 2. Transfer Files via WinSCP
 1. **Open WinSCP**
 2. **Connect to server**:
-   - Host: `51.38.158.159`
-   - Username: `mac`
-   - Password: `nasiayam2010`
+   - Host: `your-server-ip`
+   - Username: `your-username`
+   - Password: `your-password`
    - Port: `22`
 3. **Navigate to your project directory** (e.g., `/home/mac/propER`)
 4. **Upload the updated files** (drag and drop)
@@ -33,7 +33,7 @@ git push origin main
 ### 3. SSH via PuTTY and Deploy
 ```bash
 # Connect via PuTTY
-ssh mac@51.38.158.159
+ssh your-username@your-server-ip
 
 # Navigate to project
 cd /path/to/your/propER
@@ -55,7 +55,7 @@ If you prefer manual deployment:
 
 ```bash
 # SSH into server
-ssh mac@51.38.158.159
+ssh your-username@your-server-ip
 
 # Navigate to project
 cd /path/to/your/propER
@@ -99,7 +99,7 @@ make backup
 ### Restore Database
 ```bash
 # Restore from backup
-gunzip -c backups/db_backup_YYYYMMDD_HHMMSS.sql.gz | psql -h localhost -U postgres -d propdb
+gunzip -c backups/db_backup_YYYYMMDD_HHMMSS.sql.gz | psql -h localhost -U postgres -d your-database-name
 ```
 
 ## Useful Commands
@@ -119,13 +119,13 @@ sudo systemctl status nginx
 ### Database Commands
 ```bash
 # Connect to database
-psql -h localhost -U postgres -d propdb
+psql -h localhost -U postgres -d your-database-name
 
 # List tables
 \dt
 
 # Check database size
-SELECT pg_size_pretty(pg_database_size('propdb'));
+SELECT pg_size_pretty(pg_database_size('your-database-name'));
 
 # Exit database
 \q
@@ -167,7 +167,7 @@ sudo systemctl status postgresql
 sudo systemctl start postgresql
 
 # Test connection
-psql -h localhost -U postgres -d propdb
+psql -h localhost -U postgres -d your-database-name
 ```
 
 ### Permission Issues
@@ -187,7 +187,7 @@ Make sure your `.env` file on the server has:
 ```env
 FLASK_ENV=production
 FLASK_DEBUG=False
-DATABASE_URL=postgresql://postgres:proper123@localhost:5432/propdb
+DATABASE_URL=postgresql://your-user:your-password@localhost:5432/your-database
 SECRET_KEY=your-production-secret-key
 ```
 

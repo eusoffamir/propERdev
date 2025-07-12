@@ -1,13 +1,13 @@
 # Production Deployment Guide
 
-This guide covers deploying propER to your production server at `proper.propin.dev`.
+This guide covers deploying propER to your production server.
 
 ## Server Information
 
-- **Host**: 51.38.158.159
-- **Domain**: proper.propin.dev
-- **SSH Username**: mac
-- **SSH Password**: nasiayam2010
+- **Host**: your-server-ip
+- **Domain**: your-domain.com
+- **SSH Username**: your-username
+- **SSH Password**: your-password
 - **SSH Port**: 22 (default)
 
 ## Database Configuration
@@ -15,9 +15,9 @@ This guide covers deploying propER to your production server at `proper.propin.d
 - **Database**: PostgreSQL
 - **Host**: localhost
 - **Port**: 5432
-- **Database Name**: propdb
-- **Username**: postgres
-- **Password**: proper123
+- **Database Name**: your-database-name
+- **Username**: your-db-user
+- **Password**: your-db-password
 
 ## Prerequisites
 
@@ -48,9 +48,9 @@ git push origin main
 #### 2. Transfer Files via WinSCP
 1. Open WinSCP
 2. Connect to your server:
-   - Host: 51.38.158.159
-   - Username: mac
-   - Password: nasiayam2010
+   - Host: your-server-ip
+   - Username: your-username
+   - Password: your-password
    - Port: 22
 3. Navigate to your project directory
 4. Upload the updated files
@@ -58,7 +58,7 @@ git push origin main
 #### 3. SSH into Server via PuTTY
 ```bash
 # Connect to server
-ssh mac@51.38.158.159
+ssh your-username@your-server-ip
 
 # Navigate to project directory
 cd /path/to/your/project
@@ -160,13 +160,13 @@ FLASK_DEBUG=False
 SECRET_KEY=your-production-secret-key-here
 
 # Database Configuration (Production)
-DATABASE_URL=postgresql://postgres:proper123@localhost:5432/propdb
-SQLALCHEMY_DATABASE_URI=postgresql://postgres:proper123@localhost:5432/propdb
+DATABASE_URL=postgresql://your-user:your-password@localhost:5432/your-database
+SQLALCHEMY_DATABASE_URI=postgresql://your-user:your-password@localhost:5432/your-database
 
 # Database Connection Details
-DB_NAME=propdb
-DB_USER=postgres
-DB_PASS=proper123
+DB_NAME=your-database-name
+DB_USER=your-db-user
+DB_PASS=your-db-password
 DB_HOST=localhost
 DB_PORT=5432
 
@@ -176,13 +176,13 @@ SESSION_COOKIE_HTTPONLY=True
 PERMANENT_SESSION_LIFETIME=3600
 
 # Application Configuration
-COMPANY_NAME=propER
-ADMIN_EMAIL=admin@proper.com
-SUPPORT_EMAIL=support@proper.com
+COMPANY_NAME=YourCompanyName
+ADMIN_EMAIL=admin@yourcompany.com
+SUPPORT_EMAIL=support@yourcompany.com
 
 # Production Server Configuration
-PRODUCTION_HOST=51.38.158.159
-PRODUCTION_DOMAIN=proper.propin.dev
+PRODUCTION_HOST=your-server-ip
+PRODUCTION_DOMAIN=your-domain.com
 ```
 
 ## Service Configuration
@@ -196,8 +196,8 @@ Description=propER Application
 After=network.target
 
 [Service]
-User=mac
-Group=mac
+User=your-username
+Group=your-username
 WorkingDirectory=/path/to/your/project
 Environment=PATH=/path/to/your/project/venv/bin
 ExecStart=/path/to/your/project/venv/bin/gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
@@ -222,7 +222,7 @@ Create `/etc/nginx/sites-available/proper`:
 ```nginx
 server {
     listen 80;
-    server_name proper.propin.dev;
+    server_name your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -271,9 +271,9 @@ sudo systemctl enable postgresql
 sudo -u postgres psql
 
 # Create database and user
-CREATE DATABASE propdb;
-CREATE USER postgres WITH PASSWORD 'proper123';
-GRANT ALL PRIVILEGES ON DATABASE propdb TO postgres;
+CREATE DATABASE your_database_name;
+CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+GRANT ALL PRIVILEGES ON DATABASE your_database_name TO your_db_user;
 \q
 ```
 
@@ -295,7 +295,7 @@ sudo apt install certbot python3-certbot-nginx
 
 ### 2. Obtain SSL Certificate
 ```bash
-sudo certbot --nginx -d proper.propin.dev
+sudo certbot --nginx -d your-domain.com
 ```
 
 ### 3. Auto-renewal
@@ -337,7 +337,7 @@ cat > /path/to/your/project/scripts/backup_db.sh << 'EOF'
 #!/bin/bash
 BACKUP_DIR="/path/to/your/project/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
-pg_dump -h localhost -U postgres propdb > $BACKUP_DIR/db_backup_$DATE.sql
+pg_dump -h localhost -U postgres your_database_name > $BACKUP_DIR/db_backup_$DATE.sql
 find $BACKUP_DIR -name "db_backup_*.sql" -mtime +7 -delete
 EOF
 
@@ -360,7 +360,7 @@ tar -czf /path/to/your/project/backups/app_backup_$(date +%Y%m%d_%H%M%S).tar.gz 
 
 1. **Permission Denied**
    ```bash
-   sudo chown -R mac:mac /path/to/your/project
+   sudo chown -R your-username:your-username /path/to/your/project
    chmod +x scripts/*.sh
    ```
 
@@ -370,7 +370,7 @@ tar -czf /path/to/your/project/backups/app_backup_$(date +%Y%m%d_%H%M%S).tar.gz 
    sudo systemctl status postgresql
    
    # Check connection
-   psql -h localhost -U postgres -d propdb
+   psql -h localhost -U postgres -d your_database_name
    ```
 
 3. **Port Already in Use**

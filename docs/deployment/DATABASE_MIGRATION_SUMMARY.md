@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ### 2. **Set Up PostgreSQL**
 ```sql
-CREATE DATABASE propdb;
+CREATE DATABASE your_database_name;
 ```
 
 ### 3. **Test Database Connection**
@@ -126,22 +126,22 @@ Create a `.env` file with:
 ```env
 FLASK_ENV=development
 SECRET_KEY=your-secret-key
-DATABASE_URL=postgresql://postgres:proper123@localhost:5432/propdb
+DATABASE_URL=postgresql://your-db-user:your-db-password@localhost:5432/your_database_name
 ```
 
 ### 2. **Database Credentials**
 The system expects:
-- **Database**: `propdb`
-- **User**: `postgres`
-- **Password**: `proper123`
+- **Database**: `your_database_name`
+- **User**: `your-db-user`
+- **Password**: `your-db-password`
 - **Host**: `localhost`
 - **Port**: `5432`
 
 ### 3. **Default Users**
 After initialization:
-- **Admin**: eusoff@proper.com / eusoff
-- **Leader**: azimi@proper.com / azimi  
-- **Agent**: mizan@proper.com / mizan
+- **Admin**: admin@yourcompany.com / adminpass
+- **Leader**: leader@yourcompany.com / leaderpass
+- **Agent**: agent@yourcompany.com / agentpass
 
 ## 🛠️ Troubleshooting
 

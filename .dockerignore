@@ -5,4 +5,6 @@ __pycache__
 *.db
 *.sqlite
 *.log
-*.env
+# Sensitive files
+.env
+PRIVATE_INFO.txt
