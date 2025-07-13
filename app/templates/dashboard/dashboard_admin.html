@@ -48,7 +48,7 @@
     <a href="#team-performance" class="action-btn btn-info"><i class="fas fa-chart-line"></i> Team Performance</a>
     <a href="{{ url_for('reports.index') }}" class="action-btn btn-primary"><i class="fas fa-file-export"></i> Export Report</a>
     {% if user_role in ['Admin', 'Leader'] %}
-    <a href="{{ url_for('users.register') }}" class="action-btn btn-success"><i class="fas fa-user-plus"></i> Add User</a>
+    <a href="{{ url_for('users.index') }}" class="action-btn btn-success"><i class="fas fa-user-plus"></i> Add User</a>
     {% endif %}
     {% if user_role == 'Admin' %}
     <a href="{{ url_for('admin.index') }}" class="action-btn btn-database"><i class="fas fa-database"></i> Database Viewer</a>

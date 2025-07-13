@@ -8,16 +8,6 @@
         Manage your account, personal information, and company settings (if admin).
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div style="padding:12px 14px; background:{% if category == 'success' %}#e6fff2; color:#189570;{% else %}#ffe6e6; color:#d63031;{% endif %}; border-radius:8px; margin-bottom:18px; font-weight:600;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
     <!-- Profile Settings (always show) -->
     <!-- Cropper.js CSS -->
     <link  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">

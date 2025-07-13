@@ -105,14 +105,15 @@ def remove(user_id):
     flash('User removed successfully!', 'success')
     return redirect(url_for('users.index'))
 
-@users_bp.route('/register', methods=['GET', 'POST'])
+@users_bp.route('/admin_register', methods=['GET', 'POST'])
 @leader_required
-def register():
+def admin_register():
     """Register a new user (Admin/Leader only)"""
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
         phone = request.form['phone']
+        nric = request.form['nric']
         team = request.form['team']
         role = request.form['role']
         password = request.form['password']
@@ -122,9 +123,9 @@ def register():
         cur = conn.cursor()
         try:
             cur.execute("""
-                INSERT INTO users (name, email, phone, team, role, password_hash)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (name, email, phone, team, role, password_hash))
+                INSERT INTO users (name, email, phone, nric, team, role, password_hash)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (name, email, phone, nric, team, role, password_hash))
             conn.commit()
             flash('User registered successfully!', 'success')
         except psycopg2.errors.UniqueViolation:
@@ -227,10 +228,18 @@ def approve_request(request_id):
         flash('User already exists. Request rejected.', 'error')
         return redirect(url_for('users.pending_requests'))
 
+    # Use posted team if admin, else use team from request
+    from flask import session, request as flask_request
+    team = req['team']
+    if session.get('role') == 'Admin':
+        posted_team = flask_request.form.get('team')
+        if posted_team:
+            team = posted_team
+
     cur.execute("""
         INSERT INTO users (name, nric, email, phone, team, role, password_hash)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """, (req['name'], req['nric'], req['email'], req['phone'], req['team'], req['role'], req['password_hash']))
+    """, (req['name'], req['nric'], req['email'], req['phone'], team, req['role'], req['password_hash']))
     
     cur.execute("UPDATE registration_requests SET status = 'approved' WHERE request_id = %s", (request_id,))
     conn.commit()
@@ -252,4 +261,40 @@ def reject_request(request_id):
     conn.close()
     
     flash('Registration request rejected.', 'success')
+    return redirect(url_for('users.pending_requests')) 
+
+@users_bp.route('/change_team/<int:user_id>', methods=['POST'])
+@admin_required
+def change_team(user_id):
+    """Change a user's team (Admin only, fast inline change)"""
+    from flask import request
+    team = request.form.get('team')
+    if not team:
+        flash('No team selected.', 'error')
+        return redirect(url_for('users.pending_requests'))
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET team = %s WHERE user_id = %s", (team, user_id))
+    if team == 'HQ':
+        cur.execute("UPDATE users SET role = 'Admin' WHERE user_id = %s", (user_id,))
+    else:
+        # Only demote to Agent if not already Leader
+        cur.execute("SELECT role FROM users WHERE user_id = %s", (user_id,))
+        row = cur.fetchone()
+        if row and row[0] != 'Leader':
+            cur.execute("UPDATE users SET role = 'Agent' WHERE user_id = %s", (user_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    flash('Team updated successfully!', 'success')
+    # Update session if the current user is changing their own team
+    from flask import session as flask_session
+    if flask_session.get('user_id') == user_id:
+        flask_session['team'] = team
+        if team == 'HQ':
+            flask_session['role'] = 'Admin'
+        else:
+            # Only demote to Agent if not already Leader
+            if row and row[0] != 'Leader':
+                flask_session['role'] = 'Agent'
     return redirect(url_for('users.pending_requests')) 

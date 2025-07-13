@@ -3,11 +3,11 @@
 <head>
     <title>Financial Report – {{ month or "All" }}</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            font-size: 13px; 
-            background: #f6f8fb; 
-            margin: 0; 
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            background: #f6f8fb;
+            margin: 0;
             padding: 32px 0;
         }
         .container {
@@ -19,9 +19,9 @@
             padding: 38px 48px 28px 48px;
         }
         .header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 18px;
             border-bottom: 2.5px solid #4361ee28;
             padding-bottom: 16px;
@@ -30,39 +30,65 @@
             display: flex; align-items: center; gap: 14px;
         }
         .brand-block img { height: 54px; }
-        .brand-block .brand-name { 
-            font-size: 1.75rem; 
+        .brand-block .brand-name {
+            font-size: 1.75rem;
             color: #3651ad;
             font-weight: 900;
             letter-spacing: 1.2px;
         }
         .period { font-size: 1.12rem; color: #6583be; }
-        table { 
-            border-collapse: collapse; 
-            width: 100%; 
+        .summary-row {
+            margin: 18px 0 24px 0;
+            display: flex;
+            gap: 32px;
+            font-size: 1.09rem;
+            color: #3651ad;
+            font-weight: 600;
+        }
+        .summary-row span { color: #222; font-weight: 700; margin-left: 4px; }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
             margin: 32px 0 0 0;
             background: #fafbfe;
             border-radius: 9px;
             overflow: hidden;
         }
-        th, td { 
-            border: 1.3px solid #e2e7f0; 
-            padding: 12px 9px; 
+        th, td {
+            border: 1.3px solid #e2e7f0;
+            padding: 13px 10px;
             text-align: left;
         }
-        th { 
-            background: #f4f7fd; 
-            color: #2e3c64; 
-            font-size: 1.07rem; 
-            font-weight: 700; 
+        th {
+            background: #f4f7fd;
+            color: #2e3c64;
+            font-size: 1.07rem;
+            font-weight: 700;
             border-top: 2.5px solid #4361ee;
         }
         td {
             font-size: 1.03rem;
         }
-        .status-kiv { color: #b49108; font-weight: 700; }
-        .status-settle { color: #22b573; font-weight: 700; }
-        .status-cancel { color: #f72585; font-weight: 700; }
+        tr:nth-child(even) td {
+            background: #f8faff;
+        }
+        .amount-cell {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.98rem;
+            letter-spacing: 0.5px;
+        }
+        .status-settle { background: #e6fbe9; color: #22b573; }
+        .status-inprogress { background: #fffbe6; color: #b49108; }
+        .status-cancel { background: #ffe6ee; color: #f72585; }
+        .agent-unassigned { color: #bbb; font-style: italic; }
         .table-total {
             font-weight: 900;
             color: #2e3c64;
@@ -76,7 +102,6 @@
     <div class="container">
         <div class="header">
             <div class="brand-block">
-                <!-- If you want logo: -->
                 {% if logo_left %}
                 <img src="{{ logo_left }}" alt="Company Logo">
                 {% endif %}
@@ -86,7 +111,12 @@
                 Report Period: <b>{{ month or "All Time" }}</b>
             </div>
         </div>
-        <h2 style="font-weight:800; color:#3651ad; margin:12px 0 24px 0;">Financial Summary Report</h2>
+        <h2 style="font-weight:800; color:#3651ad; margin:12px 0 0 0;">Financial Summary Report</h2>
+        <div class="summary-row">
+            <div>Total Cases: <span>{{ reports|length }}</span></div>
+            <div>Settled: <span>{{ reports|selectattr('case_status', 'equalto', 'SETTLE')|list|length }}</span></div>
+            <div>Cancelled: <span>{{ reports|selectattr('case_status', 'equalto', 'CANCEL')|list|length }}</span></div>
+        </div>
         <table>
             <tr>
                 <th>#</th>
@@ -94,7 +124,7 @@
                 <th>Client</th>
                 <th>Agent</th>
                 <th>Case No</th>
-                <th>Amount (RM)</th>
+                <th class="amount-cell">Amount (RM)</th>
                 <th>Status</th>
             </tr>
             {% set total_amount = 0 %}
@@ -102,36 +132,46 @@
             <tr>
                 <td>{{ loop.index }}</td>
                 <td>{{ c.date_created[:10] if c.date_created else "-" }}</td>
-                <td>{{ c.client_name }}</td>
-                <td>{{ c.agent_name }}</td>
-                <td>{{ c.case_no }}</td>
+                <td>{{ c.client_name or '-' }}</td>
                 <td>
-                    {% if c.amount %}
-                        {{ "{:,.2f}".format(c.amount|float) }}
-                        {% set total_amount = total_amount + (c.amount|float) %}
+                    {% if c.agent_name %}
+                        {{ c.agent_name }}
+                    {% else %}
+                        <span class="agent-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td>{{ c.case_no or '-' }}</td>
+                <td class="amount-cell">
+                    {% if c.total_amount %}
+                        {{ "{:,.2f}".format(c.total_amount|float) }}
+                        {% set total_amount = total_amount + (c.total_amount|float) %}
                     {% else %}-{% endif %}
                 </td>
                 <td>
-                    {% if c.status == 'SETTLE' %}
-                        <span class="status-settle">SETTLE</span>
-                    {% elif c.status == 'KIV' %}
-                        <span class="status-kiv">KIV</span>
-                    {% elif c.status == 'CANCEL' %}
-                        <span class="status-cancel">CANCEL</span>
+                    {% if c.case_status == 'SETTLE' %}
+                        <span class="status-badge status-settle">SETTLE</span>
+                    {% elif c.case_status == 'KIV' %}
+                        <span class="status-badge status-inprogress">KIV</span>
+                    {% elif c.case_status == 'CANCEL' %}
+                        <span class="status-badge status-cancel">CANCEL</span>
+                    {% elif c.case_status == 'IN PROGRESS' %}
+                        <span class="status-badge status-inprogress">IN PROGRESS</span>
                     {% else %}
-                        {{ c.status or '-' }}
+                        <span class="status-badge">{{ c.case_status or '-' }}</span>
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
             {% if reports|length == 0 %}
             <tr>
-                <td colspan="7" style="text-align:center;">No report data found.</td>
+                <td colspan="7" style="text-align:center; color:#aaa; font-weight:600;">
+                    <i>No report data found.</i>
+                </td>
             </tr>
             {% else %}
             <tr class="table-total">
                 <td colspan="5" style="text-align:right;">TOTAL</td>
-                <td>{{ "{:,.2f}".format(total_amount) }}</td>
+                <td class="amount-cell">{{ "{:,.2f}".format(total_amount) }}</td>
                 <td></td>
             </tr>
             {% endif %}

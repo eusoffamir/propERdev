@@ -451,3 +451,17 @@ def generate_receipt_pdf(case_id):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=receipt.pdf'
     return response
+
+@cases_bp.route('/cases/<int:case_id>/update_status', methods=['POST'])
+@login_required
+def update_status(case_id):
+    new_status = request.json.get('case_status')
+    if new_status not in ['SUBMIT', 'IN PROGRESS', 'SETTLE', 'KIV', 'CANCEL']:
+        return {'success': False, 'error': 'Invalid status'}, 400
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute('UPDATE cases SET case_status = %s WHERE case_id = %s', (new_status, case_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {'success': True}

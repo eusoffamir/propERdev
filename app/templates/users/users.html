@@ -1,30 +1,76 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>User Management</title>
-</head>
-<body>
-    <h2>All Users</h2>
-    <table border="1">
-        <tr>
-            <th>Name</th><th>Email</th><th>Role</th><th>Team</th><th>Last Login</th><th>Last Active</th><th>Actions</th>
-        </tr>
-        {% for user in users %}
-        <tr>
-            <td>{{ user['name'] }}</td>
-            <td>{{ user['email'] }}</td>
-            <td>{{ user['role'] }}</td>
-            <td>{{ user['team'] }}</td>
-            <td>{{ user['last_login'] }}</td>
-            <td>{{ user['last_active'] }}</td>
-            <td>
-                <a href="/users/edit/{{ user['user_id'] }}">Edit</a>
-                <a href="/users/delete/{{ user['user_id'] }}">Delete</a>
-                <a href="/users/reset/{{ user['user_id'] }}">Reset PW</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    <a href="/register">Add User</a>
-</body>
-</html>
+{% extends "base/dashboard_base.html" %}
+
+{% block page_header %}
+<div style="margin-bottom: 2.4rem;">
+    <div style="font-size: 2.2rem; font-weight: 800; margin-bottom: 0.25rem;">
+        Add New User
+    </div>
+    <div style="font-size: 1.06rem; color: #7e8a97;">
+        Create a new user for the system.
+    </div>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<div style="background:#fff;padding:26px;border-radius:18px;box-shadow:0 6px 32px rgba(67,97,238,0.10);max-width:500px;margin:auto;">
+    <form action="{{ url_for('users.admin_register') }}" method="POST">
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Name</label>
+            <input type="text" name="name" required 
+                   style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Email</label>
+            <input type="email" name="email" required 
+                   style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Phone</label>
+            <input type="text" name="phone" 
+                   style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">NRIC</label>
+            <input type="text" name="nric" required
+                   style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+        </div>
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Role</label>
+            <select name="role" required 
+                    style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+                <option value="Agent">Agent</option>
+                <option value="Leader">Leader</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Team</label>
+            <select name="team" required 
+                    style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+                <option value="">Select Team</option>
+                <option value="HQ">HQ</option>
+                <option value="AZIMI">AZIMI</option>
+                <option value="INDRA">INDRA</option>
+                <option value="AARC">AARC</option>
+                <option value="PEA">PEA</option>
+                <option value="NON-STAFF">NON-STAFF</option>
+            </select>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+            <label style="display:block;font-weight:600;color:#7c82a1;margin-bottom:6px;font-size:0.95rem;">Password</label>
+            <input type="password" name="password" required placeholder="Temporary password" 
+                   style="width:100%;padding:12px;border:1px solid #dce3f0;border-radius:8px;font-size:1rem;background:#f5f7ff;">
+        </div>
+        
+        <button type="submit" style="width:100%;background:#4361ee;color:#fff;border:none;padding:14px;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">
+            <i class="fas fa-user-plus" style="margin-right:8px;"></i>Add User
+        </button>
+    </form>
+</div>
+{% endblock %}

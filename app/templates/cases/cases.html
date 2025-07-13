@@ -71,19 +71,18 @@
                 </td>
                 <td style="padding:10px 14px;">{{ case.description }}</td>
                 <td style="padding:10px 14px;">
-                    {% if case.case_status == 'SUBMIT' %}
-                        <span style="background:#d0e7ff;color:#007bff;padding:5px 14px;font-weight:700;border-radius:6px;">SUBMIT</span>
-                    {% elif case.case_status == 'IN PROGRESS' %}
-                        <span style="background:#fff3cd;color:#856404;padding:5px 14px;font-weight:700;border-radius:6px;">IN PROGRESS</span>
-                    {% elif case.case_status == 'SETTLE' %}
-                        <span style="background:#d4edda;color:#28a745;padding:5px 14px;font-weight:700;border-radius:6px;">SETTLE</span>
-                    {% elif case.case_status == 'KIV' %}
-                        <span style="background:#fff0d0;color:#b49108;padding:5px 14px;font-weight:700;border-radius:6px;">KIV</span>
-                    {% elif case.case_status == 'CANCEL' %}
-                        <span style="background:#f8d7da;color:#dc3545;padding:5px 14px;font-weight:700;border-radius:6px;">CANCEL</span>
-                    {% else %}
-                        <span style="background:#e2e3e5;color:#6c757d;padding:5px 14px;font-weight:700;border-radius:6px;">{{ case.case_status or '-' }}</span>
-                    {% endif %}
+                    <div class="custom-status-dropdown" data-case-id="{{ case.case_id }}">
+                        <div class="custom-status-selected status-{{ case.case_status|replace(' ', '_') if case.case_status else 'DEFAULT' }}">
+                            {{ case.case_status or '-' }}
+                        </div>
+                        <div class="custom-status-options" style="display:none;">
+                            <div class="custom-status-option status-SUBMIT" data-value="SUBMIT">SUBMIT</div>
+                            <div class="custom-status-option status-IN_PROGRESS" data-value="IN PROGRESS">IN PROGRESS</div>
+                            <div class="custom-status-option status-SETTLE" data-value="SETTLE">SETTLE</div>
+                            <div class="custom-status-option status-KIV" data-value="KIV">KIV</div>
+                            <div class="custom-status-option status-CANCEL" data-value="CANCEL">CANCEL</div>
+                        </div>
+                    </div>
                 </td>
                 <td>
                     <a href="{{ url_for('cases.generate_invoice_pdf', case_id=case['case_id']) }}" 
@@ -113,6 +112,57 @@
         </tbody>
     </table>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Custom dropdown logic
+        document.querySelectorAll('.custom-status-dropdown').forEach(function(dropdown) {
+            const selected = dropdown.querySelector('.custom-status-selected');
+            const options = dropdown.querySelector('.custom-status-options');
+            selected.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close all other dropdowns
+                document.querySelectorAll('.custom-status-options').forEach(function(opt) {
+                    if (opt !== options) opt.style.display = 'none';
+                });
+                options.style.display = options.style.display === 'block' ? 'none' : 'block';
+            });
+            options.querySelectorAll('.custom-status-option').forEach(function(option) {
+                option.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const newStatus = this.getAttribute('data-value');
+                    const caseId = dropdown.getAttribute('data-case-id');
+                    fetch(`/cases/${caseId}/update_status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ case_status: newStatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            selected.textContent = newStatus;
+                            selected.className = 'custom-status-selected status-' + newStatus.replace(' ', '_');
+                            options.style.display = 'none';
+                        } else {
+                            alert('Failed to update status: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(() => {
+                        alert('Failed to update status.');
+                    });
+                });
+            });
+        });
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.custom-status-options').forEach(function(opt) {
+                opt.style.display = 'none';
+            });
+        });
+    });
+    </script>
     {% for case in cases %}
     <!-- View Modal -->
     <div class="modal fade" id="viewModal{{ case.case_id }}" tabindex="-1">

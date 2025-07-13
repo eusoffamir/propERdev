@@ -3,26 +3,60 @@
 
 {% block main_content %}
 <style>
-    #casesTable th, #casesTable td { 
-        vertical-align: top; 
-        min-height: 42px; 
-        word-break: break-word;
-        padding: 12px 16px;
+    .report-table-container {
+        overflow-x: auto;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 6px 32px rgba(67,97,238,0.10);
+        margin-bottom: 36px;
+        padding: 0;
     }
-
-    #casesTable td {
-        /* Optional: truncate extra long content */
+    .report-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 1.06rem;
+        min-width: 900px;
+    }
+    .report-table th, .report-table td {
+        padding: 14px 18px;
+        text-align: left;
+        background: #fff;
+    }
+    .report-table th {
+        background: #f4f8fb;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .report-table tr:nth-child(even) td {
+        background: #f8faff;
+    }
+    .report-table tr:hover td {
+        background: #e9f0ff;
+    }
+    .amount-cell {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.98rem;
+        letter-spacing: 0.5px;
+    }
+    .status-settle { background: #e6fbe9; color: #22b573; }
+    .status-inprogress { background: #fffbe6; color: #b49108; }
+    .status-cancel { background: #ffe6ee; color: #f72585; }
+    .agent-unassigned { color: #bbb; font-style: italic; }
+    .truncate {
+        max-width: 180px;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 170px;
-    }
-
-    #casesTable td:nth-child(2), /* Date */
-    #casesTable td:nth-child(3), /* Client */
-    #casesTable td:nth-child(4), /* Agent */
-    #casesTable td:nth-child(5)  /* Case No */ {
-        max-width: 150px;
+        cursor: pointer;
     }
 </style>
 
@@ -37,13 +71,26 @@
 
 <!-- FILTER FORM -->
 <form method="get" action="{{ url_for('reports.index') }}" style="margin-bottom: 18px;">
-    <div style="display: flex; align-items: center;">
-        <label style="font-weight:600; color:#333; margin-right:8px;">Month:</label>
-        <input type="month" name="month" value="{{ selected_month or '' }}" style="margin-right:12px;padding:9px 12px;border-radius:7px;border:1.2px solid #d2e2fa;font-size:1.12rem;">
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center;">
+            <label style="font-weight:600; color:#333; margin-right:8px;">Month:</label>
+            <input type="month" name="month" value="{{ selected_month or '' }}" style="margin-right:12px;padding:9px 12px;border-radius:7px;border:1.2px solid #d2e2fa;font-size:1.12rem;">
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            <label style="font-weight:600; color:#333; margin-right:8px;">Chart View:</label>
+            <select name="chart_period" style="margin-right:12px;padding:9px 12px;border-radius:7px;border:1.2px solid #d2e2fa;font-size:1.12rem;">
+                <option value="monthly" {% if chart_period == 'monthly' %}selected{% endif %}>Monthly</option>
+                <option value="weekly" {% if chart_period == 'weekly' %}selected{% endif %}>Weekly</option>
+                <option value="daily" {% if chart_period == 'daily' %}selected{% endif %}>Daily</option>
+                <option value="yearly" {% if chart_period == 'yearly' %}selected{% endif %}>Yearly</option>
+            </select>
+        </div>
+        
         <button type="submit" class="action-btn btn-primary" style="margin-right:20px;">Filter</button>
 
         {% if selected_month and reports and reports|length > 0 %}
-        <a href="{{ url_for('download_report_pdf', month=selected_month) }}"
+        <a href="{{ url_for('reports.download_report_pdf', month=selected_month) }}"
            class="action-btn btn-info"
            style="margin-left:8px; font-size:1.02rem;">
             <i class="fas fa-file-pdf"></i> Download PDF
@@ -52,39 +99,46 @@
     </div>
 </form>
 
-<div style="background:#fff;padding:30px 36px 30px 36px;border-radius:18px;box-shadow:0 6px 32px rgba(67,97,238,0.10);margin-bottom:36px;">
-    <!-- Reports Table (dynamic/placeholder for now) -->
-    <table id="casesTable" style="width:100%;border-collapse:collapse;font-size:1.06rem;table-layout:fixed;">
+<div class="report-table-container">
+    <table class="report-table">
         <thead>
-            <tr style="background:#f4f8fb;">
-                <th style="padding:12px 16px;text-align:left;">#</th>
-                <th style="padding:12px 16px;text-align:left;">Date</th>
-                <th style="padding:12px 16px;text-align:left;">Client</th>
-                <th style="padding:12px 16px;text-align:left;">Agent</th>
-                <th style="padding:12px 16px;text-align:left;">Case No</th>
-                <th style="padding:12px 16px;text-align:left;">Amount (RM)</th>
-                <th style="padding:12px 16px;text-align:left;">Status</th>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Agent</th>
+                <th>Case No</th>
+                <th class="amount-cell">Amount (RM)</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
         {% if reports %}
             {% for r in reports %}
-            <tr style="border-bottom:1.2px solid #e9eefa;">
-                <td style="padding:10px 16px;">{{ loop.index }}</td>
-                <td style="padding:10px 16px;">{{ r.date_created[:10] if r.date_created else '-' }}</td>
-                <td style="padding:10px 16px;">{{ r.client_name }}</td>
-                <td style="padding:10px 16px;">{{ r.agent_name }}</td>
-                <td style="padding:10px 16px;">{{ r.case_no }}</td>
-                <td style="padding:10px 16px;">{{ '{:,.2f}'.format(r.amount or 0) }}</td>
-                <td style="padding:10px 16px;">
-                    {% if r.status == 'SETTLE' %}
-                        <span style="color:#22b573;font-weight:700;">SETTLE</span>
-                    {% elif r.status == 'KIV' %}
-                        <span style="color:#b49108;font-weight:700;">KIV</span>
-                    {% elif r.status == 'CANCEL' %}
-                        <span style="color:#f72585;font-weight:700;">CANCEL</span>
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ r.date_created[:10] if r.date_created else '-' }}</td>
+                <td class="truncate" title="{{ r.client_name }}">{{ r.client_name or '-' }}</td>
+                <td>
+                    {% if r.agent_name %}
+                        {{ r.agent_name }}
                     {% else %}
-                        <span>{{ r.status or '-' }}</span>
+                        <span class="agent-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td class="truncate" title="{{ r.case_no }}">{{ r.case_no or '-' }}</td>
+                <td class="amount-cell">{{ '{:,.2f}'.format(r.total_amount or 0) }}</td>
+                <td>
+                    {% if r.case_status == 'SETTLE' %}
+                        <span class="status-badge status-settle">SETTLE</span>
+                    {% elif r.case_status == 'KIV' %}
+                        <span class="status-badge status-inprogress">KIV</span>
+                    {% elif r.case_status == 'CANCEL' %}
+                        <span class="status-badge status-cancel">CANCEL</span>
+                    {% elif r.case_status == 'IN PROGRESS' %}
+                        <span class="status-badge status-inprogress">IN PROGRESS</span>
+                    {% else %}
+                        <span class="status-badge">{{ r.case_status or '-' }}</span>
                     {% endif %}
                 </td>
             </tr>
@@ -92,13 +146,12 @@
         {% else %}
             <tr>
                 <td colspan="7" style="text-align:center;padding:33px 0;color:#aaa;font-weight:600;">
-                    No report data found.
+                    <i class="fas fa-info-circle"></i> No report data found.
                 </td>
             </tr>
         {% endif %}
         </tbody>
     </table>
-    <!-- You can add charts, totals, export buttons etc here later -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -126,12 +179,32 @@ const amountChart = new Chart(ctx, {
         },
         scales: {
             x: {
-                title: { display: true, text: 'Client' },
+                title: { display: true, text: '{{ chart_period.title() }}' },
                 ticks: {
-                    maxRotation: 20, minRotation: 0, autoSkip: true,
+                    maxRotation: 45, minRotation: 0, autoSkip: true,
                     callback: function(val, idx, ticks) {
                         let lbl = this.getLabelForValue(val);
-                        return lbl.length > 14 ? lbl.substring(0,12) + "..." : lbl;
+                        // Format based on period type
+                        if (lbl && lbl.includes('-')) {
+                            if (lbl.includes('W')) {
+                                // Weekly format: "2024-W01" to "Week 1, 2024"
+                                const [year, week] = lbl.split('-W');
+                                return 'Week ' + week + ', ' + year;
+                            } else if (lbl.split('-').length === 3) {
+                                // Daily format: "2024-01-15" to "Jan 15"
+                                const [year, month, day] = lbl.split('-');
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return monthNames[parseInt(month) - 1] + ' ' + day;
+                            } else if (lbl.split('-').length === 2) {
+                                // Monthly format: "2024-01" to "Jan 2024"
+                                const [year, month] = lbl.split('-');
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return monthNames[parseInt(month) - 1] + ' ' + year;
+                            }
+                        }
+                        return lbl;
                     }
                 }
             },

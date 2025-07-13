@@ -75,6 +75,14 @@
                         <a href="{{ url_for('auth.logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% set category, message = messages[-1] %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" style="margin: 24px 0 0 0; font-size:1.08rem; font-weight:500;">
+                      {{ message }}
+                    </div>
+                  {% endif %}
+                {% endwith %}
                 {% block page_header %}{% endblock %}
                 {% block main_content %}{% endblock %}
             </div>

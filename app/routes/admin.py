@@ -48,7 +48,7 @@ def view_table(table_name):
         result = db.session.execute(query)
         
         # Get column names
-        columns = result.keys()
+        columns = list(result.keys())
         rows = [dict(zip(columns, row)) for row in result.fetchall()]
         
         # Get total count
@@ -74,6 +74,77 @@ def view_table(table_name):
     except Exception as e:
         return f"Error viewing table: {str(e)}", 500
 
+@admin_bp.route('/save-table-changes', methods=['POST'])
+@admin_required
+def save_table_changes():
+    """Save changes to table data"""
+    try:
+        data = request.get_json()
+        table_name = data.get('table_name')
+        changes = data.get('changes', {})
+        deleted_rows = data.get('deleted_rows', [])
+        new_rows = data.get('new_rows', [])
+        
+        # Get all data to map row indices to actual data
+        query = text(f"SELECT * FROM {table_name}")
+        result = db.session.execute(query)
+        columns = list(result.keys())
+        all_rows = [dict(zip(columns, row)) for row in result.fetchall()]
+        
+        # Process updates
+        for row_index_str, row_changes in changes.items():
+            row_index = int(row_index_str)
+            if row_index < len(all_rows):
+                row_data = all_rows[row_index]
+                
+                # Build UPDATE query
+                set_clauses = []
+                where_clauses = []
+                params = {}
+                
+                for column, new_value in row_changes.items():
+                    set_clauses.append(f"{column} = :{column}_new")
+                    params[f"{column}_new"] = new_value
+                
+                # Use first column as primary key for WHERE clause (simplified approach)
+                primary_key = list(columns)[0]
+                where_clauses.append(f"{primary_key} = :{primary_key}_old")
+                params[f"{primary_key}_old"] = row_data[primary_key]
+                
+                update_query = text(f"UPDATE {table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}")
+                db.session.execute(update_query, params)
+        
+        # Process deletions
+        for row_index_str in deleted_rows:
+            row_index = int(row_index_str)
+            if row_index < len(all_rows):
+                row_data = all_rows[row_index]
+                
+                # Use first column as primary key for WHERE clause
+                primary_key = list(columns)[0]
+                delete_query = text(f"DELETE FROM {table_name} WHERE {primary_key} = :{primary_key}")
+                db.session.execute(delete_query, {primary_key: row_data[primary_key]})
+        
+        # Process new rows
+        for new_row_data in new_rows:
+            row_data = new_row_data.get('data', {})
+            
+            # Build INSERT query
+            columns_list = list(columns)
+            placeholders = [f":{col}" for col in columns_list]
+            
+            insert_query = text(f"INSERT INTO {table_name} ({', '.join(columns_list)}) VALUES ({', '.join(placeholders)})")
+            db.session.execute(insert_query, row_data)
+        
+        # Commit all changes
+        db.session.commit()
+        
+        return jsonify({"success": True, "message": "Changes saved successfully"})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @admin_bp.route('/api/table/<table_name>')
 @admin_required
 def api_table_data(table_name):
@@ -85,7 +156,7 @@ def api_table_data(table_name):
         query = text(f"SELECT * FROM {table_name} LIMIT {per_page} OFFSET {(page-1)*per_page}")
         result = db.session.execute(query)
         
-        columns = result.keys()
+        columns = list(result.keys())
         rows = [dict(zip(columns, [str(val) if val is not None else '' for val in row])) for row in result.fetchall()]
         
         count_query = text(f"SELECT COUNT(*) FROM {table_name}")
@@ -110,7 +181,7 @@ def export_table(table_name):
         query = text(f"SELECT * FROM {table_name}")
         result = db.session.execute(query)
         
-        columns = result.keys()
+        columns = list(result.keys())
         rows = [dict(zip(columns, row)) for row in result.fetchall()]
         
         # Convert to DataFrame and export
