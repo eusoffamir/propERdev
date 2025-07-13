@@ -11,11 +11,88 @@
     <a href="{{ url_for('cases.add') }}" class="action-btn btn-success" style="font-size:1.07rem;"><i class="fas fa-plus"></i> Add Case</a>
 </div>
 
+<div id="cases-tabs" style="display:flex;gap:10px;margin-bottom:18px;">
+    <div class="cases-tab active" data-status="ALL">All</div>
+    <div class="cases-tab" data-status="SUBMIT">SUBMIT</div>
+    <div class="cases-tab" data-status="IN PROGRESS">IN PROGRESS</div>
+    <div class="cases-tab" data-status="SETTLE">SETTLE</div>
+    <div class="cases-tab" data-status="KIV">KIV</div>
+    <div class="cases-tab" data-status="CANCEL">CANCEL</div>
+</div>
+<div id="cases-filters" style="display:flex;gap:18px;align-items:center;margin-bottom:18px;">
+    <label>Month:
+        <select id="month-filter" style="margin-left:6px;">
+            <option value="ALL">All</option>
+            {% for month in months %}
+                <option value="{{ month }}">{{ month }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <input id="caseSearch" type="text" placeholder="Search cases..." style="border:1.2px solid #d2e2fa;border-radius:7px;padding:9px 13px;width:180px;font-size:1.1rem;">
+</div>
+<style>
+.cases-tab {
+    padding: 8px 22px;
+    border-radius: 8px 8px 0 0;
+    background: #f4f8fb;
+    color: #4361ee;
+    font-weight: 700;
+    font-size: 1.08rem;
+    cursor: pointer;
+    border: 1.5px solid #e4eafb;
+    border-bottom: none;
+    transition: background 0.18s, color 0.18s;
+}
+.cases-tab.active {
+    background: #fff;
+    color: #222;
+    border-bottom: 2.5px solid #fff;
+    box-shadow: 0 -2px 8px #4361ee11;
+    z-index: 2;
+}
+.case-no-flex {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    white-space: nowrap;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab click filtering
+    document.querySelectorAll('.cases-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.cases-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            filterCases();
+        });
+    });
+    // Remove status filter logic
+    // Month filter
+    document.getElementById('month-filter').addEventListener('change', filterCases);
+    // Search filter
+    document.getElementById('caseSearch').addEventListener('input', filterCases);
+    function filterCases() {
+        // Get active status from tab
+        const activeTab = document.querySelector('.cases-tab.active');
+        const status = activeTab ? activeTab.getAttribute('data-status') : 'ALL';
+        const month = document.getElementById('month-filter').value;
+        const search = document.getElementById('caseSearch').value.toLowerCase();
+        document.querySelectorAll('#casesTable tbody tr').forEach(function(row) {
+            const rowStatus = row.querySelector('.custom-status-selected')?.textContent.trim() || '';
+            const rowMonth = (row.querySelector('[data-label="Date Created"]')?.textContent.trim() || '').slice(0,7);
+            const rowText = row.textContent.toLowerCase();
+            let show = true;
+            if (status !== 'ALL' && rowStatus !== status) show = false;
+            if (month !== 'ALL' && rowMonth !== month) show = false;
+            if (search && !rowText.includes(search)) show = false;
+            row.style.display = show ? '' : 'none';
+        });
+    }
+});
+</script>
+
 <div style="background:#fff;padding:26px 26px 10px 26px;border-radius:18px;box-shadow:0 6px 32px rgba(67,97,238,0.10);margin-bottom:36px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <input id="caseSearch" type="text" placeholder="Search cases..." style="border:1.2px solid #d2e2fa;border-radius:7px;padding:9px 13px;width:260px;font-size:1.1rem;">
-        <!-- <button class="btn-primary" style="font-size:1.01rem;padding:8px 16px;border:none;border-radius:7px;">Export</button> -->
-    </div>
     <style>
     .case-grid {
     display: grid;
@@ -45,69 +122,154 @@
         grid-template-columns: 1fr;
     }
     }
+    /* Table improvements */
+    #casesTable {
+        table-layout: auto;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1.06rem;
+        background: #fff;
+    }
+    #casesTable th, #casesTable td {
+        white-space: nowrap;
+        padding: 12px 22px;
+        border-right: 1.5px solid #f0f2fa;
+        text-align: center;
+        /* No overflow, no ellipsis, no max-width */
+    }
+    #casesTable th:last-child, #casesTable td:last-child {
+        border-right: none;
+    }
+    .table-responsive {
+        overflow-x: auto;
+        width: 100%;
+    }
+    #casesTable thead th {
+        position: sticky;
+        top: 0;
+        background: #f4f8fb;
+        z-index: 2;
+        font-weight: 700;
+        color: #4361ee;
+        box-shadow: 0 2px 4px #4361ee11;
+    }
+    #casesTable tbody tr:nth-child(even) {
+        background: #f8fafd;
+    }
+    #casesTable tbody tr:hover {
+        background: #eaf0fb;
+        transition: background 0.2s;
+    }
+    .status-icon {
+        margin-right: 7px;
+        font-size: 1.1em;
+        vertical-align: middle;
+    }
+    .copy-btn {
+        background: none;
+        border: none;
+        color: #4361ee;
+        cursor: pointer;
+        font-size: 1.1em;
+        margin-left: 6px;
+        padding: 0;
+    }
+    @media (max-width: 900px) {
+        #casesTable th, #casesTable td {
+            font-size: 0.97rem;
+            padding: 8px 7px;
+        }
+    }
+    @media (max-width: 600px) {
+        #casesTable, #casesTable thead, #casesTable tbody, #casesTable th, #casesTable td, #casesTable tr {
+            display: block;
+        }
+        #casesTable thead {
+            display: none;
+        }
+        #casesTable tr {
+            margin-bottom: 18px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #4361ee11;
+            background: #fff;
+        }
+        #casesTable td {
+            padding: 12px 16px;
+            border: none;
+            position: relative;
+        }
+        #casesTable td:before {
+            content: attr(data-label);
+            font-weight: 700;
+            color: #4361ee;
+            display: block;
+            margin-bottom: 4px;
+        }
+    }
     </style>
-
-    <div style="overflow-x:auto;">
-    <table id="casesTable" style="width:100%;border-collapse:collapse;font-size:1.06rem;">
+    <div class="table-responsive">
+    <table id="casesTable">
         <thead>
-            <tr style="background:#f4f8fb;">
-                <th style="padding:11px 14px;text-align:left;font-weight:700;color:#4361ee;">#</th>
-                <th style="padding:11px 14px;text-align:left;">Case No</th>
-                <th style="padding:11px 14px;text-align:left;">Case Details</th>
-                <th style="padding:11px 14px;text-align:left;">Status</th>
-                <th style="padding:11px 14px;text-align:left;">Generate</th>
-                <th style="padding:11px 14px;text-align:left;">Actions</th>
+            <tr>
+                <th style="padding:11px 14px;">#</th>
+                <th style="padding:11px 14px;">Case No</th>
+                <th style="padding:11px 14px;">Case Details</th>
+                <th style="padding:11px 14px;">Status</th>
+                <th style="padding:11px 14px;">Date Created</th>
+                <th style="padding:11px 14px;">Generate</th>
+                <th style="padding:11px 14px;">Actions</th>
             </tr>
         </thead>
         <tbody>
         {% if cases %}
             {% for case in cases %}
-            <tr class="case-row" style="border-bottom:1.2px solid #e9eefa;">
-                <td style="padding:10px 14px;font-weight:700;color:#888;">{{ case.number }}</td>
-                <td style="padding:10px 14px;">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ case.case_id }}" style="color:#222;text-decoration:underline;cursor:pointer;">
-                        {{ case.case_no }}
-                    </a>
+            <tr class="case-row">
+                <td data-label="#" title="{{ case.number }}">{{ case.number }}</td>
+                <td data-label="Case No" title="{{ case.case_no }}">
+                    <span class="case-no-flex">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ case.case_id }}" style="color:#222;text-decoration:underline;cursor:pointer;white-space:nowrap;">
+                            {{ case.case_no }}
+                        </a>
+                        <button class="copy-btn" title="Copy Case No" onclick="navigator.clipboard.writeText('{{ case.case_no }}');event.stopPropagation();event.preventDefault();"><i class="fas fa-copy"></i></button>
+                    </span>
                 </td>
-                <td style="padding:10px 14px;">{{ case.description }}</td>
-                <td style="padding:10px 14px;">
-                    <div class="custom-status-dropdown" data-case-id="{{ case.case_id }}">
-                        <div class="custom-status-selected status-{{ case.case_status|replace(' ', '_') if case.case_status else 'DEFAULT' }}">
+                <td data-label="Case Details" title="{{ case.description }}">{{ case.description }}</td>
+                <td data-label="Status" title="{{ case.case_status }}">
+                    <div class="custom-status-dropdown" data-case-id="{{ case.case_id }}" style="display:inline-block;vertical-align:middle;">
+                        <div class="custom-status-selected status-{{ case.case_status|replace(' ', '_') if case.case_status else 'DEFAULT' }}" title="Change status">
                             {{ case.case_status or '-' }}
                         </div>
                         <div class="custom-status-options" style="display:none;">
-                            <div class="custom-status-option status-SUBMIT" data-value="SUBMIT">SUBMIT</div>
-                            <div class="custom-status-option status-IN_PROGRESS" data-value="IN PROGRESS">IN PROGRESS</div>
-                            <div class="custom-status-option status-SETTLE" data-value="SETTLE">SETTLE</div>
-                            <div class="custom-status-option status-KIV" data-value="KIV">KIV</div>
-                            <div class="custom-status-option status-CANCEL" data-value="CANCEL">CANCEL</div>
+                            <div class="custom-status-option status-SUBMIT" data-value="SUBMIT" title="Mark as SUBMIT">SUBMIT</div>
+                            <div class="custom-status-option status-IN_PROGRESS" data-value="IN PROGRESS" title="Mark as IN PROGRESS">IN PROGRESS</div>
+                            <div class="custom-status-option status-SETTLE" data-value="SETTLE" title="Mark as SETTLE">SETTLE</div>
+                            <div class="custom-status-option status-KIV" data-value="KIV" title="Mark as KIV">KIV</div>
+                            <div class="custom-status-option status-CANCEL" data-value="CANCEL" title="Mark as CANCEL">CANCEL</div>
                         </div>
                     </div>
                 </td>
-                <td>
+                <td data-label="Date Created" title="{{ case.date_created }}">{{ case.date_created[:10] if case.date_created else '-' }}</td>
+                <td data-label="Generate">
                     <a href="{{ url_for('cases.generate_invoice_pdf', case_id=case['case_id']) }}" 
                     class="action-btn btn-info" 
-                    style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; margin-right:7px; display:inline-block;">
+                    style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; margin-right:7px; display:inline-block;" title="Generate Invoice">
                         <i class="fas fa-file-invoice"></i> Invoice
                     </a>
                     <a href="{{ url_for('cases.generate_receipt_pdf', case_id=case['case_id']) }}" 
                     class="action-btn btn-primary" 
-                    style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; display:inline-block;">
+                    style="padding:4px 15px 4px 10px; font-size:0.98rem; margin-top:3px; display:inline-block;" title="Generate Receipt">
                         <i class="fas fa-receipt"></i> Receipt
                     </a>
                 </td>
-                <td style="padding:10px 14px;">
-                    <!-- View -->
+                <td data-label="Actions">
                     <a href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ case.case_id }}" title="View" style="margin-right:7px;color:#4361ee;"><i class="fas fa-eye"></i></a>
-                    <!-- Edit -->
                     <a href="#" data-bs-toggle="modal" data-bs-target="#editModal{{ case.case_id }}" title="Edit" style="margin-right:7px;color:#14b8a6;"><i class="fas fa-edit"></i></a>
-                    <!-- Delete -->
                     <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModal{{ case.case_id }}" title="Delete" style="color:#f72585;"><i class="fas fa-trash"></i></a>
                 </td>
             </tr>
             {% endfor %}
         {% else %}
-            <tr><td colspan="6" style="text-align:center;padding:33px 0;color:#aaa;font-weight:600;">No cases found.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:33px 0;color:#aaa;font-weight:600;">No cases found.</td></tr>
         {% endif %}
         </tbody>
     </table>
@@ -337,15 +499,4 @@
     </div>
     {% endfor %}
 </div>
-
-<script>
-// Live search
-document.getElementById('caseSearch').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    document.querySelectorAll('#casesTable tbody tr').forEach(tr => {
-        if (tr.innerText.toLowerCase().indexOf(q) > -1) tr.style.display = '';
-        else tr.style.display = 'none';
-    });
-});
-</script>
 {% endblock %}

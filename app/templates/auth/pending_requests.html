@@ -73,7 +73,7 @@
   </div>
 
   {% set allowed_teams = ['HQ', 'AZIMI', 'INDRA', 'AARC', 'PEA', 'NON-STAFF'] %}
-  {% set all_teams = allowed_teams + ['None'] %}
+  {% set all_teams = ['All'] + allowed_teams + ['None'] %}
   {% set teams = {} %}
   {% for user in users %}
     {% set t = user.team if user.team in allowed_teams else 'None' %}
@@ -86,7 +86,7 @@
   <!-- Team Tabs -->
   <div id="teamTabs" style="display:flex;gap:10px;margin-bottom:18px;">
     {% for team in all_teams %}
-      <button class="team-tab-btn" onclick="showTeamTab('{{ team }}')" id="tab-btn-{{ team }}" style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;background:#f5f7fa;color:#4361ee;font-weight:700;font-size:1.08rem;cursor:pointer;outline:none;">{{ team }} <span style="color:#888;font-size:0.98rem;">({{ teams[team]|length if teams[team] is defined else 0 }})</span></button>
+      <button class="team-tab-btn" onclick="showTeamTab('{{ team }}')" id="tab-btn-{{ team }}" style="padding:8px 22px;border:none;border-radius:8px 8px 0 0;background:#f5f7fa;color:#4361ee;font-weight:700;font-size:1.08rem;cursor:pointer;outline:none;">{{ team }} <span style="color:#888;font-size:0.98rem;">({{ users|length if team == 'All' else (teams[team]|length if teams[team] is defined else 0) }})</span></button>
     {% endfor %}
   </div>
 
@@ -94,7 +94,7 @@
   <div id="teamTabContents">
     {% for team in all_teams %}
       <div class="team-tab-content" id="tab-content-{{ team }}" style="display:none;">
-        <div style="margin-bottom:10px;font-size:1.13rem;font-weight:700;color:#4361ee;">{{ team }} <span style="color:#888;font-size:1.01rem;">({{ teams[team]|length if teams[team] is defined else 0 }} members)</span></div>
+        <div style="margin-bottom:10px;font-size:1.13rem;font-weight:700;color:#4361ee;">{{ team }} <span style="color:#888;font-size:1.01rem;">({{ users|length if team == 'All' else (teams[team]|length if teams[team] is defined else 0) }} members)</span></div>
         <div style="width:100%;overflow-x:auto;">
           <table style="min-width:700px;width:100%;border-collapse:separate;border-spacing:0 6px;font-size:1.07rem;background:#fff;">
             <thead>
@@ -108,69 +108,109 @@
               </tr>
             </thead>
             <tbody>
-              {% for user in teams[team] if teams[team] is defined %}
-              <tr style="box-shadow:0 2px 10px #dbe5fa23;">
-                <td style="background:#fff;padding:16px 18px;">
-                  <span onclick="showUserDetails({{ user.user_id }})" style="color:#4361ee;cursor:pointer;text-decoration:underline;font-weight:600;">{{ user.name }}</span>
-                </td>
-                <td style="background:#fff;padding:16px 18px;">{{ user.email }}</td>
-                <td style="background:#fff;padding:16px 18px;">
-                  {% if user.role == "Admin" %}
-                    <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#f72585;color:#fff;">Admin</span>
-                  {% elif user.role == "Leader" %}
-                    <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4895ef;color:#fff;">Leader</span>
-                  {% else %}
-                    <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4cc9f0;color:#222;">Agent</span>
-                  {% endif %}
-                </td>
-                <td style="background:#fff;padding:16px 18px;">
-                  {% if user_role == 'Admin' %}
-                    <form action="{{ url_for('users.change_team', user_id=user.user_id) }}" method="post" style="display:inline;" onchange="this.submit()">
-                      <select name="team" style="padding:4px 8px;border-radius:6px;border:1px solid #ccc; background-color: {% if user.team == 'HQ' %}#e0e7ff{% elif user.team == 'AZIMI' %}#ffe0e6{% elif user.team == 'INDRA' %}#e0ffe6{% elif user.team == 'AARC' %}#fffbe0{% elif user.team == 'PEA' %}#e0f7fa{% elif user.team == 'NON-STAFF' %}#f3e0ff{% else %}#f5f7fa{% endif %}; text-align:center;">
-                        <option value="" {% if not user.team or user.team not in allowed_teams %}selected{% endif %} style="background:#f5f7fa;text-align:center;">None</option>
-                        {% for t in allowed_teams %}
-                          <option value="{{ t }}" {% if user.team == t %}selected{% endif %} style="background:{% if t == 'HQ' %}#e0e7ff{% elif t == 'AZIMI' %}#ffe0e6{% elif t == 'INDRA' %}#e0ffe6{% elif t == 'AARC' %}#fffbe0{% elif t == 'PEA' %}#e0f7fa{% elif t == 'NON-STAFF' %}#f3e0ff{% else %}#f5f7fa{% endif %};text-align:center;">{{ t }}</option>
-                        {% endfor %}
-                      </select>
-                    </form>
-                  {% else %}
-                    {{ user.team or '-' }}
-                  {% endif %}
-                </td>
-                <td style="background:#fff;padding:16px 18px;color:#666;">{{ user.last_login or "-" }}</td>
-                <td style="background:#fff;padding:16px 18px;text-align:center;">
-                  <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
-                      <button onclick="showUserDetails({{ user.user_id }})" title="Details"
-                      style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                              background:#edf2fb;color:#4361ee;border-radius:8px;border:none;cursor:pointer;">
-                      <i class="fas fa-eye"></i>
-                      </button>
-                      <button onclick="showUserEdit({{ user.user_id }})" title="Edit"
-                      style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                              background:#ffd60a;color:#22223b;border-radius:8px;border:none;cursor:pointer;">
-                      <i class="fas fa-pen"></i>
-                      </button>
-                      {% if user.role != "Admin" %}
-                      <form action="{{ url_for('users.remove', user_id=user.user_id) }}" method="post"
-                              onsubmit="return confirm('Are you sure you want to remove this user?');"
-                              style="display:inline;">
-                          <button type="submit" title="Remove"
-                                  style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                                      background:#fa5252;color:#fff;border:none;border-radius:8px;">
-                          <i class="fas fa-trash"></i>
-                          </button>
-                      </form>
+              {% if team == 'All' %}
+                {% for user in users %}
+                  <tr style="box-shadow:0 2px 10px #dbe5fa23;">
+                    <td style="background:#fff;padding:16px 18px;">
+                      <span onclick="showUserDetails({{ user.user_id }})" style="color:#4361ee;cursor:pointer;text-decoration:underline;font-weight:600;">{{ user.name }}</span>
+                    </td>
+                    <td style="background:#fff;padding:16px 18px;">{{ user.email }}</td>
+                    <td style="background:#fff;padding:16px 18px;">
+                      {% if user.role == "Admin" %}
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#f72585;color:#fff;">Admin</span>
+                      {% elif user.role == "Leader" %}
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4895ef;color:#fff;">Leader</span>
                       {% else %}
-                      <span title="Admin cannot be removed"
-                              style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                                  color:#adb5bd;border-radius:8px;">
-                          <i class="fas fa-ban"></i>
-                      </span>
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4cc9f0;color:#222;">Agent</span>
                       {% endif %}
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
+                    </td>
+                    <td style="background:#fff;padding:16px 18px;">{{ user.team or '-' }}</td>
+                    <td style="background:#fff;padding:16px 18px;color:#666;">{{ user.last_login or "-" }}</td>
+                    <td style="background:#fff;padding:16px 18px;text-align:center;">
+                      <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                          <button onclick="showUserDetails({{ user.user_id }})" title="Details"
+                          style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                  background:#edf2fb;color:#4361ee;border-radius:8px;border:none;cursor:pointer;">
+                          <i class="fas fa-eye"></i>
+                          </button>
+                          <button onclick="showUserEdit({{ user.user_id }})" title="Edit"
+                          style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                  background:#ffd60a;color:#22223b;border-radius:8px;border:none;cursor:pointer;">
+                          <i class="fas fa-pen"></i>
+                          </button>
+                          {% if user.role != "Admin" %}
+                          <form action="{{ url_for('users.remove', user_id=user.user_id) }}" method="post"
+                                  onsubmit="return confirm('Are you sure you want to remove this user?');"
+                                  style="display:inline;">
+                              <button type="submit" title="Remove"
+                                      style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                          background:#fa5252;color:#fff;border:none;border-radius:8px;">
+                              <i class="fas fa-trash"></i>
+                              </button>
+                          </form>
+                          {% else %}
+                          <span title="Admin cannot be removed"
+                                  style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                      color:#adb5bd;border-radius:8px;">
+                              <i class="fas fa-ban"></i>
+                          </span>
+                          {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                {% for user in teams[team] if teams[team] is defined %}
+                  <tr style="box-shadow:0 2px 10px #dbe5fa23;">
+                    <td style="background:#fff;padding:16px 18px;">
+                      <span onclick="showUserDetails({{ user.user_id }})" style="color:#4361ee;cursor:pointer;text-decoration:underline;font-weight:600;">{{ user.name }}</span>
+                    </td>
+                    <td style="background:#fff;padding:16px 18px;">{{ user.email }}</td>
+                    <td style="background:#fff;padding:16px 18px;">
+                      {% if user.role == "Admin" %}
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#f72585;color:#fff;">Admin</span>
+                      {% elif user.role == "Leader" %}
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4895ef;color:#fff;">Leader</span>
+                      {% else %}
+                        <span style="border-radius:8px;font-size:1.05rem;font-weight:700;padding:6px 18px;background:#4cc9f0;color:#222;">Agent</span>
+                      {% endif %}
+                    </td>
+                    <td style="background:#fff;padding:16px 18px;">{{ user.team or '-' }}</td>
+                    <td style="background:#fff;padding:16px 18px;color:#666;">{{ user.last_login or "-" }}</td>
+                    <td style="background:#fff;padding:16px 18px;text-align:center;">
+                      <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                          <button onclick="showUserDetails({{ user.user_id }})" title="Details"
+                          style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                  background:#edf2fb;color:#4361ee;border-radius:8px;border:none;cursor:pointer;">
+                          <i class="fas fa-eye"></i>
+                          </button>
+                          <button onclick="showUserEdit({{ user.user_id }})" title="Edit"
+                          style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                  background:#ffd60a;color:#22223b;border-radius:8px;border:none;cursor:pointer;">
+                          <i class="fas fa-pen"></i>
+                          </button>
+                          {% if user.role != "Admin" %}
+                          <form action="{{ url_for('users.remove', user_id=user.user_id) }}" method="post"
+                                  onsubmit="return confirm('Are you sure you want to remove this user?');"
+                                  style="display:inline;">
+                              <button type="submit" title="Remove"
+                                      style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                          background:#fa5252;color:#fff;border:none;border-radius:8px;">
+                              <i class="fas fa-trash"></i>
+                              </button>
+                          </form>
+                          {% else %}
+                          <span title="Admin cannot be removed"
+                                  style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
+                                      color:#adb5bd;border-radius:8px;">
+                              <i class="fas fa-ban"></i>
+                          </span>
+                          {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
             </tbody>
           </table>
         </div>

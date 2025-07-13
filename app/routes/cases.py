@@ -42,7 +42,16 @@ def index():
     cur.close()
     conn.close()
 
-    return render_template('cases/cases.html', cases=cases, user_role=user_role, user_name=session.get('user_name'))
+    # After fetching cases
+    months = []
+    for case in cases:
+        date_str = case.get('date_created') or ''
+        if date_str:
+            month = date_str[:7]
+            if month not in months:
+                months.append(month)
+    months.sort(reverse=True)
+    return render_template('cases/cases.html', cases=cases, user_role=user_role, user_name=session.get('user_name'), months=months)
 
 @cases_bp.route('/add_case', methods=['GET', 'POST'])
 @login_required
