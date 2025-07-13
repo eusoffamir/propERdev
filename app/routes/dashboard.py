@@ -100,7 +100,8 @@ def index():
     # LEADER DASHBOARD
     # -------------------------
     elif user_role == 'Leader':
-        cur.execute("SELECT user_id, name, tiering_pct FROM users WHERE team = %s AND role = 'Agent'", (team,))
+        # Show only agents added by this leader
+        cur.execute("SELECT user_id, name, tiering_pct FROM users WHERE added_by = %s AND role = 'Agent'", (user_id,))
         team_agents = cur.fetchall()
         team_agent_ids = [a['user_id'] for a in team_agents]
 

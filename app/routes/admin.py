@@ -29,7 +29,10 @@ def index():
     # Get all table names
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    return render_template('admin/database_viewer.html', tables=tables, user_role=session.get('role'), user_name=session.get('user_name'))
+    # Move 'users' and 'cases' to the front if they exist
+    priority = ['users', 'cases']
+    tables_sorted = [t for t in priority if t in tables] + [t for t in tables if t not in priority]
+    return render_template('admin/database_viewer.html', tables=tables_sorted, user_role=session.get('role'), user_name=session.get('user_name'))
 
 @admin_bp.route('/table/<table_name>')
 @admin_required

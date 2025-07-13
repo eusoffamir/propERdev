@@ -74,7 +74,9 @@
       <tbody>
         {% for user in users %}
         <tr style="box-shadow:0 2px 10px #dbe5fa23;">
-          <td style="background:#fff;padding:16px 18px;">{{ user.name }}</td>
+          <td style="background:#fff;padding:16px 18px;">
+            <span onclick="showUserDetails({{ user.user_id }})" style="color:#4361ee;cursor:pointer;text-decoration:underline;font-weight:600;">{{ user.name }}</span>
+          </td>
           <td style="background:#fff;padding:16px 18px;">{{ user.email }}</td>
           <td style="background:#fff;padding:16px 18px;">
             {% if user.role == "Admin" %}
@@ -90,19 +92,19 @@
           <td style="background:#fff;padding:16px 18px;text-align:center;">
             <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
                 
-                <!-- View Button -->
-                <a href="{{ url_for('users.details', user_id=user.user_id) }}" title="Details"
+                <!-- View Button (modal) -->
+                <button onclick="showUserDetails({{ user.user_id }})" title="Details"
                 style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                        background:#edf2fb;color:#4361ee;border-radius:8px;">
+                        background:#edf2fb;color:#4361ee;border-radius:8px;border:none;cursor:pointer;">
                 <i class="fas fa-eye"></i>
-                </a>
+                </button>
 
-                <!-- Edit Button -->
-                <a href="{{ url_for('users.edit', user_id=user.user_id) }}" title="Edit"
+                <!-- Edit Button (modal) -->
+                <button onclick="showUserEdit({{ user.user_id }})" title="Edit"
                 style="width:36px;height:36px;display:flex;justify-content:center;align-items:center;
-                        background:#ffd60a;color:#22223b;border-radius:8px;">
+                        background:#ffd60a;color:#22223b;border-radius:8px;border:none;cursor:pointer;">
                 <i class="fas fa-pen"></i>
-                </a>
+                </button>
 
                 <!-- Conditional Button -->
                 {% if user.role != "Admin" %}
@@ -131,4 +133,79 @@
     </table>
   </div>
 </div>
+
+<!-- User Details/Edit Modal -->
+<div id="userModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+  <div class="modal-content" style="background:#fff;padding:2rem 2.5rem;border-radius:16px;max-width:480px;width:100%;position:relative;min-height:200px;">
+    <span class="close" onclick="closeUserModal()" style="position:absolute;top:18px;right:24px;font-size:2rem;cursor:pointer;">&times;</span>
+    <div id="modalBody">
+      <!-- Content loaded by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+function openUserModal(contentHtml) {
+  document.getElementById('modalBody').innerHTML = contentHtml;
+  document.getElementById('userModal').style.display = 'flex';
+}
+function closeUserModal() {
+  document.getElementById('userModal').style.display = 'none';
+}
+
+function showUserDetails(userId) {
+  fetch(`/user/${userId}?modal=1`)
+    .then(resp => resp.text())
+    .then(html => openUserModal(html));
+}
+
+function showUserEdit(userId) {
+  fetch(`/edit_user/${userId}?modal=1`)
+    .then(resp => resp.text())
+    .then(html => openUserModal(html));
+}
+
+function submitUserEdit(event, userId) {
+  event.preventDefault();
+  const form = document.getElementById('editUserForm');
+  const data = Object.fromEntries(new FormData(form).entries());
+  fetch(`/api/user/${userId}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(resp => resp.json())
+  .then(res => {
+    if(res.success){
+      closeUserModal();
+      location.reload();
+    } else {
+      alert(res.error||'Failed to update user.');
+    }
+  });
+  return false;
+}
+</script>
 {% endblock %}
+
+<style>
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(30,40,90,0.18) !important;
+  z-index: 9999 !important;
+}
+.modal-content {
+  margin: 0 !important;
+  position: static !important;
+  left: unset !important;
+  top: unset !important;
+  transform: none !important;
+}
+</style>

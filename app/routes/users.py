@@ -7,13 +7,29 @@ from werkzeug.security import generate_password_hash
 
 users_bp = Blueprint('users', __name__)
 
+def parse_float(val):
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return None
+
 @users_bp.route('/users')
-@admin_required
+@login_required
 def index():
-    """List all users (Admin only)"""
+    """List users (Admin: all, Leader: only their agents)"""
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("SELECT * FROM users ORDER BY created_at DESC")
+    user_role = session.get('role')
+    user_id = session.get('user_id')
+    if user_role == 'Admin':
+        cur.execute("SELECT * FROM users ORDER BY created_at DESC")
+    elif user_role == 'Leader':
+        cur.execute("SELECT * FROM users WHERE added_by = %s AND role = 'Agent' ORDER BY created_at DESC", (user_id,))
+    else:
+        cur.close()
+        conn.close()
+        flash('Access denied.', 'error')
+        return redirect(url_for('dashboard.index'))
     users = cur.fetchall()
     cur.close()
     conn.close()
@@ -22,27 +38,23 @@ def index():
 @users_bp.route('/user/<int:user_id>')
 @login_required
 def details(user_id):
-    """View user details"""
+    """Return user details as an HTML fragment for the popup"""
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cur.fetchone()
     cur.close()
     conn.close()
-    
     if not user:
-        flash('User not found.', 'error')
-        return redirect(url_for('dashboard.index'))
-    
-    return render_template('users/user_details.html', user=user)
+        return "<div style='padding:2rem;text-align:center;color:#d7263d;'>User not found.</div>", 404
+    return render_template('users/user_details_popup.html', user=user)
 
 @users_bp.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def edit(user_id):
-    """Edit user details"""
+    """Return user edit form as an HTML fragment for the popup, or handle update"""
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
     if request.method == 'POST':
         form = request.form
         cur.execute("""
@@ -52,27 +64,32 @@ def edit(user_id):
                 notes = %s, role = %s, status = %s
             WHERE user_id = %s
         """, (
-            form['name'], form['email'], form['team'], form['phone'],
-            form['ren_no'], form['nric'], form['tiering_pct'], form['position'],
-            form['notes'], form['role'], form['status'], user_id
+            form.get('name', ''),
+            form.get('email', ''),
+            form.get('team', ''),
+            form.get('phone', ''),
+            form.get('ren_no', ''),
+            form.get('nric', ''),
+            parse_float(form.get('tiering_pct', None)),
+            form.get('position', ''),
+            form.get('notes', ''),
+            form.get('role', ''),
+            form.get('status', ''),
+            user_id
         ))
         conn.commit()
         cur.close()
         conn.close()
-        
-        flash('User updated successfully!', 'success')
-        return redirect(url_for('users.details', user_id=user_id))
-
+        return redirect(url_for('users.index'))
     cur.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cur.fetchone()
     cur.close()
     conn.close()
-    
     if not user:
-        flash('User not found.', 'error')
-        return redirect(url_for('dashboard.index'))
-    
-    return render_template('users/edit_user.html', user=user)
+        return "<div style='padding:2rem;text-align:center;color:#d7263d;'>User not found.</div>", 404
+    from flask import session
+    user_role = session.get('role')
+    return render_template('users/edit_user_popup.html', user=user, user_role=user_role)
 
 @users_bp.route('/user/<int:user_id>/remove', methods=['POST'])
 @admin_required
@@ -161,8 +178,14 @@ def pending_requests():
     cur.execute("SELECT * FROM registration_requests WHERE status = 'pending'")
     reqs = cur.fetchall()
 
-    cur.execute("SELECT * FROM users")
-    users = cur.fetchall()
+    user_role = session.get('role')
+    user_id = session.get('user_id')
+    if user_role == 'Leader':
+        cur.execute("SELECT * FROM users WHERE added_by = %s AND role = 'Agent'", (user_id,))
+        users = cur.fetchall()
+    else:
+        cur.execute("SELECT * FROM users")
+        users = cur.fetchall()
 
     # Sort: Admin first, then Leader, then Agent
     role_priority = {'Admin': 0, 'Leader': 1, 'Agent': 2}

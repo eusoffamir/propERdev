@@ -23,38 +23,35 @@ def index():
     avatar_path = os.path.join(avatar_folder, avatar_filename)
     avatar_url = url_for('static', filename=f'avatars/{avatar_filename}') if os.path.exists(avatar_path) else url_for('static', filename='default-avatar.jpg')
 
-    if user_role == 'Admin':
-        # Admin settings - company settings
-        if request.method == 'POST':
+    # Always fetch user info
+    cur.execute("SELECT name, email, phone FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    user_info = dict(row) if row else {}
+
+    # Always fetch company settings
+    cur.execute("SELECT * FROM company_settings LIMIT 1")
+    row = cur.fetchone()
+    settings = dict(row) if row else {}
+
+    if request.method == 'POST':
+        print(f"[DEBUG] request.files keys: {list(request.files.keys())}")
+        print(f"[DEBUG] request.form keys: {list(request.form.keys())}")
+        # Check which form was submitted
+        if 'company_name' in request.form:
             # Update company settings
             company_name = request.form.get('company_name', '')
             company_address = request.form.get('company_address', '')
             company_phone = request.form.get('company_phone', '')
             company_email = request.form.get('company_email', '')
-            
             cur.execute("""
                 UPDATE company_settings
                 SET company_name = %s, address = %s, phone = %s, email = %s
                 WHERE setting_id = 1
             """, (company_name, company_address, company_phone, company_email))
-            
             conn.commit()
             flash('Company settings updated successfully!', 'success')
             return redirect(url_for('settings.index'))
-        
-        # Get current company settings
-        cur.execute("SELECT * FROM company_settings LIMIT 1")
-        row = cur.fetchone()
-        settings = dict(row) if row else {}
-        
-        cur.close()
-        conn.close()
-        
-        return render_template('settings.html', settings=settings, user_role=user_role, is_admin=True)
-    
-    else:
-        # User profile settings for agents and leaders
-        if request.method == 'POST':
+        else:
             # Update user profile
             user_name = request.form.get('user_name', '')
             user_email = request.form.get('user_email', '')
@@ -65,10 +62,13 @@ def index():
             # Handle avatar upload
             if 'avatar' in request.files:
                 avatar = request.files['avatar']
+                print(f"[DEBUG] user_id from session: {user_id}")
                 if avatar and avatar.filename:
                     filename = secure_filename(f"{user_id}.jpg")
                     save_path = os.path.join(avatar_folder, filename)
+                    print(f"[DEBUG] Saving avatar to: {save_path}")
                     avatar.save(save_path)
+                    print(f"[DEBUG] Avatar saved: {os.path.exists(save_path)}")
             # Update name/email/phone
             cur.execute("""
                 UPDATE users
@@ -99,14 +99,8 @@ def index():
             session['user_phone'] = user_phone
             flash('Profile updated successfully!', 'success')
             return redirect(url_for('settings.index'))
-        
-        # Get current user info
-        cur.execute("SELECT name, email, phone FROM users WHERE user_id = %s", (user_id,))
-        row = cur.fetchone()
-        
-        cur.close()
-        conn.close()
-        
-        user_info = dict(row) if row else {}
-        
-        return render_template('settings.html', user_info=user_info, user_role=user_role, is_admin=False, avatar_url=avatar_url)
+
+    cur.close()
+    conn.close()
+
+    return render_template('settings.html', user_info=user_info, user_role=user_role, is_admin=(user_role=='Admin'), avatar_url=avatar_url, settings=settings)

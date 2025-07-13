@@ -1,0 +1,71 @@
+<form id="editUserForm" action="{{ url_for('users.edit', user_id=user.user_id) }}" method="post">
+  <div style="text-align:center;margin-bottom:18px;">
+    <img src="{{ url_for('static', filename=user.avatar if user.avatar else 'default-avatar.jpg') }}" alt="Avatar" style="width:110px;height:110px;border-radius:50%;box-shadow:0 2px 12px #4361ee22;object-fit:cover;margin-bottom:10px;">
+    <div style="font-size:2rem;font-weight:900;color:#4361ee;letter-spacing:0.5px;">Edit {{ user.name }}</div>
+  </div>
+  <div class="user-edit-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px 32px;margin-bottom:32px;width:100%;align-items:end;">
+    <div><label class="edit-label">Name</label><input name="name" value="{{ user.name or '' }}" class="edit-input"></div>
+    <div><label class="edit-label">Email</label><input name="email" value="{{ user.email or '' }}" class="edit-input"></div>
+    <div><label class="edit-label">Phone</label><input name="phone" value="{{ user.phone or '' }}" class="edit-input"></div>
+    <div><label class="edit-label">Team</label>
+      {% if user_role == 'Admin' %}
+        <select name="team" class="edit-input" style="padding: 14px 16px; border-radius: 8px; border: 1px solid #dce3f0; font-size: 1.09rem; margin-top: 6px; background: #f7f8fd; box-sizing: border-box; width: 100%;">
+          <option value="HQ" {% if user.team == 'HQ' %}selected{% endif %}>HQ</option>
+          <option value="AZIMI" {% if user.team == 'AZIMI' %}selected{% endif %}>AZIMI</option>
+          <option value="INDRA" {% if user.team == 'INDRA' %}selected{% endif %}>INDRA</option>
+          <option value="AARC" {% if user.team == 'AARC' %}selected{% endif %}>AARC</option>
+          <option value="PEA" {% if user.team == 'PEA' %}selected{% endif %}>PEA</option>
+          <option value="NON-STAFF" {% if user.team == 'NON-STAFF' %}selected{% endif %}>NON-STAFF</option>
+        </select>
+      {% else %}
+        <input name="team" value="{{ user.team or '' }}" class="edit-input" readonly style="background-color: #f5f5f5; color: #666;">
+      {% endif %}
+    </div>
+    <div><label class="edit-label">REN No</label><input name="ren_no" value="{{ user.ren_no or '' }}" class="edit-input"></div>
+    <div><label class="edit-label">NRIC</label><input name="nric" value="{{ user.nric or '' }}" class="edit-input"></div>
+    <input type="hidden" name="tiering_pct" value="{{ user.tiering_pct or '' }}">
+    <div><label class="edit-label">Status</label>
+      <select name="status" class="edit-input" style="padding: 14px 16px; border-radius: 8px; border: 1px solid #dce3f0; font-size: 1.09rem; margin-top: 6px; background: #f7f8fd; box-sizing: border-box; width: 100%;">
+        <option value="active" {% if user.status == 'active' %}selected{% endif %}>Active</option>
+        <option value="not active" {% if user.status == 'not active' %}selected{% endif %}>Not Active</option>
+      </select>
+    </div>
+    <div></div>
+  </div>
+  <div style="text-align:center;margin-top:0;width:100%;">
+    <button class="btn btn-primary" type="submit" style="font-size:1.13rem;padding:12px 32px;border-radius:10px;font-weight:700;box-shadow:0 2px 8px #4895ef22;max-width:200px;margin:auto;display:block;">
+      <i class='fas fa-save'></i> Save
+    </button>
+  </div>
+</form>
+<style>
+.edit-label {
+  font-weight:700;
+  color:#7c82a1;
+  font-size:1.13rem;
+  margin-bottom:6px;
+  display:block;
+}
+.user-edit-grid input.edit-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #dce3f0;
+  font-size: 1.09rem;
+  margin-top: 6px;
+  background: #f7f8fd;
+  box-sizing: border-box;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 40px #4361ee18, 0 2px 10px #e9ecef44;
+  border: 1.5px solid #e9ecef;
+  width: 100% !important;
+  max-width: 800px !important;
+  padding: 2.5rem 2rem !important;
+}
+@media (max-width: 900px) {
+  .user-edit-grid { grid-template-columns: 1fr !important; }
+}
+</style> 

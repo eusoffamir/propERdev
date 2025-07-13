@@ -36,12 +36,14 @@ def create_app(config_name='development') -> Flask:
     def inject_user_info():
         from flask import session, url_for
         import os
+        import time  # Add this import for cache busting
         user_id = session.get('user_id')
         avatar_url = url_for('static', filename='default-avatar.jpg')
         if user_id:
             avatar_path = os.path.join(app.root_path, 'static', 'avatars', f'{user_id}.jpg')
             if os.path.exists(avatar_path):
-                avatar_url = url_for('static', filename=f'avatars/{user_id}.jpg')
+                # Add cache-busting query parameter
+                avatar_url = url_for('static', filename=f'avatars/{user_id}.jpg') + f'?v={int(time.time())}'
         return dict(user_name=session.get('user_name', ''), user_role=session.get('role', ''), avatar_url=avatar_url)
     
     return app
