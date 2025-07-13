@@ -23,14 +23,25 @@
     </div>
     <div><label class="edit-label">REN No</label><input name="ren_no" value="{{ user.ren_no or '' }}" class="edit-input"></div>
     <div><label class="edit-label">NRIC</label><input name="nric" value="{{ user.nric or '' }}" class="edit-input"></div>
-    <input type="hidden" name="tiering_pct" value="{{ user.tiering_pct or '' }}">
+    <div><label class="edit-label">Position</label><input name="position" value="{{ user.position or '' }}" class="edit-input"></div>
+    <div><label class="edit-label">Role</label>
+      <select name="role" class="edit-input" style="padding: 14px 16px; border-radius: 8px; border: 1px solid #dce3f0; font-size: 1.09rem; margin-top: 6px; background: #f7f8fd; box-sizing: border-box; width: 100%;">
+        <option value="Admin" {% if user.role == 'Admin' %}selected{% endif %}>Admin</option>
+        <option value="Leader" {% if user.role == 'Leader' %}selected{% endif %}>Leader</option>
+        <option value="Agent" {% if user.role == 'Agent' %}selected{% endif %}>Agent</option>
+      </select>
+    </div>
     <div><label class="edit-label">Status</label>
       <select name="status" class="edit-input" style="padding: 14px 16px; border-radius: 8px; border: 1px solid #dce3f0; font-size: 1.09rem; margin-top: 6px; background: #f7f8fd; box-sizing: border-box; width: 100%;">
         <option value="active" {% if user.status == 'active' %}selected{% endif %}>Active</option>
         <option value="not active" {% if user.status == 'not active' %}selected{% endif %}>Not Active</option>
       </select>
     </div>
-    <div></div>
+    <div><label class="edit-label">Tiering %</label><input name="tiering_pct" value="{{ user.tiering_pct or '' }}" class="edit-input" type="number" step="0.01" min="0" max="100"></div>
+  </div>
+  <div style="margin-bottom:24px;">
+    <label class="edit-label">Notes</label>
+    <textarea name="notes" class="edit-input" style="width: 100%; padding: 14px 16px; border-radius: 8px; border: 1px solid #dce3f0; font-size: 1.09rem; margin-top: 6px; background: #f7f8fd; box-sizing: border-box; min-height: 80px; resize: vertical;">{{ user.notes or '' }}</textarea>
   </div>
   <div style="text-align:center;margin-top:0;width:100%;">
     <button class="btn btn-primary" type="submit" style="font-size:1.13rem;padding:12px 32px;border-radius:10px;font-weight:700;box-shadow:0 2px 8px #4895ef22;max-width:200px;margin:auto;display:block;">

@@ -1,67 +1,172 @@
 {% extends "base/dashboard_base.html" %}
 {% block main_content %}
+<style>
+  .add-case-form {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 6px 32px #4361ee11, 0 1.5px 8px #70b4ff13;
+    padding: 2.6rem 2.4rem 2.2rem 2.4rem;
+    margin: 0 auto;
+    max-width: 900px;
+    width: 100%;
+  }
+  .add-case-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px 32px;
+    align-items: center;
+  }
+  @media (max-width: 800px) {
+    .add-case-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .add-case-form {
+      padding: 1.2rem 0.5rem;
+    }
+  }
+  .add-case-form label {
+    font-weight: 600;
+    color: #333;
+  }
+  .add-case-form input,
+  .add-case-form select,
+  .add-case-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 9px;
+    border: 1.5px solid #e4eafb;
+    background: #f6f9fd;
+    margin-top: 7px;
+    font-size: 1.08rem;
+  }
+  .add-case-form textarea {
+    min-height: 60px;
+  }
+  .add-case-form .section-title {
+    font-weight: 700;
+    color: #4361ee;
+    margin-bottom: 18px;
+    font-size: 1.1rem;
+    grid-column: 1 / -1;
+  }
+  .add-case-form .action-btn {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    padding: 13px 40px;
+    margin-top: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .add-case-form .action-btn:hover {
+    background: #1746a2;
+  }
+  .add-case-form .secondary-btn {
+    background: #f3f4f6;
+    color: #333;
+    border: 1px solid #e4eafb;
+    border-radius: 7px;
+    padding: 8px 18px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .add-case-form .secondary-btn:hover {
+    background: #e4eafb;
+  }
+  .add-case-form .optional-section {
+    background: #f8faff;
+    padding: 24px 18px 12px 18px;
+    border-radius: 12px;
+    margin-top: 10px;
+    grid-column: 1 / -1;
+  }
+  .add-case-form .optional-section input,
+  .add-case-form .optional-section select,
+  .add-case-form .optional-section textarea {
+    background: #fff;
+  }
+  .add-case-form .form-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 18px;
+    grid-column: 1 / -1;
+  }
+</style>
 <div style="margin-bottom:2.4rem;"><div style="font-size:2.2rem;font-weight:800;margin-bottom:0.25rem;">Add New Case</div><div style="font-size:1.06rem;color:#7e8a97;">Register a new case. Only the basics are required!</div></div>
-
-<form action="{{ url_for('cases.add') }}" method="post" style="background:#fff;border-radius:24px;box-shadow:0 6px 32px #4361ee11,0 1.5px 8px #70b4ff13;padding:2.6rem 2.4rem 2.2rem 2.4rem;margin:0 auto;max-width:600px;">
-  <div style="display:grid;grid-template-columns:1fr;gap:24px;align-items:center;">
+<form action="{{ url_for('cases.add') }}" method="post" class="add-case-form">
+  <div class="add-case-grid">
     <div>
-      <label for="client_name" style="font-weight:600;color:#333;">Client Name <span style='color:#e74c3c;'>*</span></label>
-      <input type="text" id="client_name" name="client_name" required placeholder="e.g. John Doe" style="width:100%;padding:12px 15px;border-radius:9px;border:1.5px solid #e4eafb;background:#f6f9fd;margin-top:7px;font-size:1.08rem;">
+      <label for="client_name">Client Name <span style='color:#e74c3c;'>*</span></label>
+      <input type="text" id="client_name" name="client_name" required placeholder="e.g. John Doe">
     </div>
     <div>
-      <label for="property_address" style="font-weight:600;color:#333;">Property Address <span style='color:#e74c3c;'>*</span></label>
-      <input type="text" id="property_address" name="property_address" required placeholder="e.g. 123 Main St, KL" style="width:100%;padding:12px 15px;border-radius:9px;border:1.5px solid #e4eafb;background:#f6f9fd;margin-top:7px;font-size:1.08rem;">
+      <label for="property_address">Property Address <span style='color:#e74c3c;'>*</span></label>
+      <input type="text" id="property_address" name="property_address" required placeholder="e.g. 123 Main St, KL">
     </div>
     <div>
-      <label for="net_price" style="font-weight:600;color:#333;">Net Price (RM) <span style='color:#e74c3c;'>*</span></label>
-      <input type="number" id="net_price" name="net_price" step="0.01" required placeholder="e.g. 500000" style="width:100%;padding:12px 15px;border-radius:9px;border:1.5px solid #e4eafb;background:#f6f9fd;margin-top:7px;font-size:1.08rem;">
+      <label for="net_price">Net Price (RM) <span style='color:#e74c3c;'>*</span></label>
+      <input type="number" id="net_price" name="net_price" step="0.01" required placeholder="e.g. 500000">
     </div>
     <div>
-      <label for="date_created" style="font-weight:600;color:#333;">Date Created <span style='color:#e74c3c;'>*</span></label>
-      <input type="date" id="date_created" name="date_created" required style="width:100%;padding:12px 15px;border-radius:9px;border:1.5px solid #e4eafb;background:#f6f9fd;margin-top:7px;font-size:1.08rem;">
+      <label for="date_created">Date Created <span style='color:#e74c3c;'>*</span></label>
+      <input type="date" id="date_created" name="date_created" required>
     </div>
     <div>
-      <label for="status" style="font-weight:600;color:#333;">Status <span style='color:#e74c3c;'>*</span></label>
-      <select id="status" name="status" required style="width:100%;padding:12px 15px;border-radius:9px;border:1.5px solid #e4eafb;background:#f6f9fd;margin-top:7px;font-size:1.08rem;">
+      <label for="status">Status <span style='color:#e74c3c;'>*</span></label>
+      <select id="status" name="status" required>
         <option value="SETTLE">SETTLE</option>
         <option value="KIV">KIV</option>
         <option value="CANCEL">CANCEL</option>
       </select>
     </div>
-    <div style="margin-top:10px;">
-      <button type="button" onclick="document.getElementById('more-details').style.display = (document.getElementById('more-details').style.display === 'none' ? 'block' : 'none');this.innerText = this.innerText === 'Show More Details' ? 'Hide More Details' : 'Show More Details';" class="btn btn-secondary" style="padding:8px 18px;font-size:1rem;border-radius:7px;">Show More Details</button>
+    <div style="grid-column: 1 / -1; text-align: center; margin-bottom: 0; padding-bottom: 0;">
+      <button type="button" id="toggle-details-btn" onclick="toggleDetails()" class="secondary-btn">Show More Details <span id='arrow-icon'>▼</span></button>
     </div>
-    <div id="more-details" style="display:none;margin-top:10px;background:#f8faff;padding:24px 18px 12px 18px;border-radius:12px;">
-      <div style="font-weight:700;color:#4361ee;margin-bottom:18px;font-size:1.1rem;">Optional Details</div>
-      <div style="display:flex;flex-direction:column;gap:18px;">
-        <div style="font-weight:600;color:#333;margin-bottom:2px;">People</div>
-        <div style="display:grid;grid-template-columns:1fr;gap:10px;">
-          <div><label for="agent_name" style="font-weight:500;color:#333;">Agent Name</label><input type="text" id="agent_name" name="agent_name" value="{{ agent_name }}" readonly style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#f6f9fd;margin-top:3px;font-size:0.98rem;color:#888;"></div>
-          <div><label for="leader_name" style="font-weight:500;color:#333;">Leader Name</label><input type="text" id="leader_name" name="leader_name" value="{{ leader_name }}" readonly style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#f6f9fd;margin-top:3px;font-size:0.98rem;color:#888;"></div>
-        </div>
-        <div style="font-weight:600;color:#333;margin:12px 0 2px 0;">Case Info</div>
-        <div style="display:grid;grid-template-columns:1fr;gap:10px;">
-          <div><label for="case_no" style="font-weight:500;color:#333;">Case No</label><input type="text" id="case_no" name="case_no" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="invoice_no" style="font-weight:500;color:#333;">Invoice No</label><input type="text" id="invoice_no" name="invoice_no" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="eform_id" style="font-weight:500;color:#333;">E-Form ID <span style='color:#aaa;font-weight:400;'>(if any)</span></label><input type="text" id="eform_id" name="eform_id" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="description" style="font-weight:500;color:#333;">Description <span style='color:#aaa;font-weight:400;'>(optional)</span></label><input type="text" id="description" name="description" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="case_details" style="font-weight:500;color:#333;">Case Details <span style='color:#aaa;font-weight:400;'>(optional)</span></label><textarea id="case_details" name="case_details" rows="2" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></textarea></div>
-        </div>
-        <div style="font-weight:600;color:#333;margin:12px 0 2px 0;">Financial</div>
-        <div style="display:grid;grid-template-columns:1fr;gap:10px;">
-          <div><label for="fee_pct" style="font-weight:500;color:#333;">Fee % <span style='color:#aaa;font-weight:400;'>(if applicable)</span></label><input type="number" id="fee_pct" name="fee_pct" step="0.01" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="commission_pct" style="font-weight:500;color:#333;">Commission % <span style='color:#aaa;font-weight:400;'>(if applicable)</span></label><input type="number" id="commission_pct" name="commission_pct" step="0.01" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="total_commission" style="font-weight:500;color:#333;">Total Commission (RM)</label><input type="number" id="total_commission" name="total_commission" step="0.01" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="tax" style="font-weight:500;color:#333;">Tax (RM)</label><input type="number" id="tax" name="tax" step="0.01" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-          <div><label for="total_amount" style="font-weight:500;color:#333;">Total Amount (RM)</label><input type="number" id="total_amount" name="total_amount" step="0.01" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-        </div>
-        <div style="font-weight:600;color:#333;margin:12px 0 2px 0;">Other</div>
-        <div style="display:grid;grid-template-columns:1fr;gap:10px;">
-          <div><label for="payment_status" style="font-weight:500;color:#333;">Payment Status <span style='color:#aaa;font-weight:400;'>(optional)</span></label><input type="text" id="payment_status" name="payment_status" style="width:100%;padding:8px 10px;border-radius:7px;border:1.2px solid #e4eafb;background:#fff;margin-top:3px;font-size:0.98rem;"></div>
-        </div>
+    <div id="more-details" class="optional-section" style="display:none;">
+      <div class="section-title">Optional Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;">
+        <div style="grid-column:1/-1;font-weight:600;color:#333;margin-bottom:2px;">People</div>
+        <div><label for="agent_name" style="font-weight:500;color:#333;">Agent Name</label><input type="text" id="agent_name" name="agent_name" value="{{ agent_name }}" readonly style="color:#888;"></div>
+        <div><label for="leader_name" style="font-weight:500;color:#333;">Leader Name</label><input type="text" id="leader_name" name="leader_name" value="{{ leader_name }}" readonly style="color:#888;"></div>
+        <div style="grid-column:1/-1;font-weight:600;color:#333;margin:12px 0 2px 0;">Case Info</div>
+        <div><label for="case_no" style="font-weight:500;color:#333;">Case No</label><input type="text" id="case_no" name="case_no"></div>
+        <div><label for="invoice_no" style="font-weight:500;color:#333;">Invoice No</label><input type="text" id="invoice_no" name="invoice_no"></div>
+        <div><label for="eform_id" style="font-weight:500;color:#333;">E-Form ID <span style='color:#aaa;font-weight:400;'>(if any)</span></label><input type="text" id="eform_id" name="eform_id"></div>
+        <div><label for="description" style="font-weight:500;color:#333;">Description <span style='color:#aaa;font-weight:400;'>(optional)</span></label><input type="text" id="description" name="description"></div>
+        <div style="grid-column:1/-1;"><label for="case_details" style="font-weight:500;color:#333;">Case Details <span style='color:#aaa;font-weight:400;'>(optional)</span></label><textarea id="case_details" name="case_details" rows="2"></textarea></div>
+        <div style="grid-column:1/-1;font-weight:600;color:#333;margin:12px 0 2px 0;">Financial</div>
+        <div><label for="fee_pct" style="font-weight:500;color:#333;">Fee % <span style='color:#aaa;font-weight:400;'>(if applicable)</span></label><input type="number" id="fee_pct" name="fee_pct" step="0.01"></div>
+        <div><label for="commission_pct" style="font-weight:500;color:#333;">Commission % <span style='color:#aaa;font-weight:400;'>(if applicable)</span></label><input type="number" id="commission_pct" name="commission_pct" step="0.01"></div>
+        <div><label for="total_commission" style="font-weight:500;color:#333;">Total Commission (RM)</label><input type="number" id="total_commission" name="total_commission" step="0.01"></div>
+        <div><label for="tax" style="font-weight:500;color:#333;">Tax (RM)</label><input type="number" id="tax" name="tax" step="0.01"></div>
+        <div><label for="total_amount" style="font-weight:500;color:#333;">Total Amount (RM)</label><input type="number" id="total_amount" name="total_amount" step="0.01"></div>
+        <div style="grid-column:1/-1;font-weight:600;color:#333;margin:12px 0 2px 0;">Other</div>
+        <div style="grid-column:1/-1;"><label for="payment_status" style="font-weight:500;color:#333;">Payment Status <span style='color:#aaa;font-weight:400;'>(optional)</span></label><input type="text" id="payment_status" name="payment_status"></div>
       </div>
     </div>
-    <div style="text-align:right;margin-top:18px;"><button type="submit" class="action-btn btn-success" style="font-size:1.2rem;padding:13px 40px;margin-top:13px;">Add Case</button></div>
+    <div class="form-footer" style="margin-top: 0; padding-top: 0;"><button type="submit" class="action-btn">Add Case</button></div>
   </div>
 </form>
+<script>
+function toggleDetails() {
+  var more = document.getElementById('more-details');
+  var btn = document.getElementById('toggle-details-btn');
+  var arrow = document.getElementById('arrow-icon');
+  if (more.style.display === 'none' || more.style.display === '') {
+    more.style.display = 'block';
+    btn.childNodes[0].nodeValue = 'Hide More Details ';
+    arrow.textContent = '▲';
+  } else {
+    more.style.display = 'none';
+    btn.childNodes[0].nodeValue = 'Show More Details ';
+    arrow.textContent = '▼';
+  }
+}
+</script>
 {% endblock %}

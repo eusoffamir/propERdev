@@ -12,8 +12,8 @@
   <div style="width:100%"><span style="font-weight:700;color:#7c82a1;">Status:</span> {{ user.status or '-' }}</div>
 </div>
 <div style="text-align:center;margin-top:32px;width:100%;">
-  <button class="btn btn-primary" onclick="showUserEdit({{ user.user_id }})" style="font-size:1.13rem;padding:12px 32px;border-radius:10px;font-weight:700;box-shadow:0 2px 8px #4895ef22;max-width:200px;margin:auto;display:block;">
-    <i class='fas fa-pen'></i> Edit
+  <button class="btn btn-primary" onclick="showEditUser({{ user.user_id }})" style="font-size:1.13rem;padding:12px 32px;border-radius:10px;font-weight:700;box-shadow:0 2px 8px #4895ef22;max-width:200px;margin:auto;display:block;">
+    <i class='fas fa-edit'></i> Edit
   </button>
 </div>
 <style>
